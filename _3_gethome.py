@@ -41,7 +41,7 @@ def gethome(recorddir,homepath):
             hr=int(info[0][9:11])
             if (hr>=21 or hr<7) and info[1] in basemap:
                 plane=basemap[info[1]]
-                if info[2] not user:user[info[2]]=dict()
+                if info[2] not in user:user[info[2]]=dict()
                 user[info[2]][plane]=1 if plane not in user[info[2]] else user[info[2]][plane]+1
         solvecnt=solvecnt+1
         h,m,s=timeEvaluation(solvecnt,totalcnt,time.time()-starttime)
