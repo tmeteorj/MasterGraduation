@@ -60,8 +60,14 @@ def gethome(recorddir,homepath):
     for x in sorted(result.items(),key=lambda arg:arg[1]):
         fw.write("%s,%d\n"%(x[0],x[1]))
     fw.close()
+def removeuser(homepath,realhome,thred):
+    fw=open(realhome,"w")
+    for line in open(homepath,"r"):
+        info=line.strip().split(",")
+        if int(info[-1])>=thred:fw.write(line)
+    fw.close()
 if __name__=="__main__":
     loadbase("BasePlaneSimple.csv")
     for month in ["201412","201501","201502","201503","201504"]:
         gethome("i"+month,"home/userhome"+month+".txt")
-
+        removeuser("home/userhome"+month+".txt","home/realhome"+month+".txt",100)
