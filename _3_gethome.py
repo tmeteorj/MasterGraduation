@@ -46,7 +46,7 @@ def gethome(recorddir,homepath):
         solvecnt=solvecnt+1
         h,m,s=timeEvaluation(solvecnt,totalcnt,time.time()-starttime)
         print("gethome: %s, completed: %d/%d=%.4f%%, remain: %02d:%02d:%02d"%(recorddir,solvecnt,totalcnt,solvecnt*100.0/totalcnt,h,m,s))
-    fw=open(homepath,"w")
+    result=dict()
     for u in user:
         maxcnt=0
         maxloc="null"
@@ -55,7 +55,10 @@ def gethome(recorddir,homepath):
             if cnt>maxcnt:
                 maxcnt=cnt
                 maxloc=pid
-        fw.write("%s,%s,%d\n"%(u,maxloc,maxcnt))
+        result[u+","+maxloc]=maxcnt
+    fw=open(homepath,"w")
+    for x in sorted(result.items(),key=lambda arg:arg[1]):
+        fw.write("%s,%d\n"%(x[0],x[1]))
     fw.close()
 if __name__=="__main__":
     loadbase("BasePlaneSimple.csv")
