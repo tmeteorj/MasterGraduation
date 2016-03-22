@@ -26,7 +26,7 @@ def loadbase(inputpath):
         info=line.strip().split(",")
         basemap[info[0]]=info[3]
 def gethome(recorddir,homepath):
-    global basemap,user
+    global basemap
     user=dict()
     files=os.listdir(recorddir)
     files.sort()
@@ -64,10 +64,21 @@ def removeuser(homepath,realhome,thred):
     fw=open(realhome,"w")
     for line in open(homepath,"r"):
         info=line.strip().split(",")
-        if int(info[-1])>=thred:fw.write(line)
+        if int(info[-1])>=thred:fw.write("%s,%s\n"%(info[0],info[1]))
+    fw.close()
+def decodeuser(usermappath,realhome,codehome):
+    hashuser=dict()
+    for line in open(usermappath,"r"):
+        info=line.strip().split(",")
+        hashuser[info[1]]=info[0]
+    fw=open(codehome,"w")
+    for line in open(realhome,"r"):
+        info=line.strip().split(",")
+        fw.write("%s,%s\n"%(hashuser[info[0]],info[1]))
     fw.close()
 if __name__=="__main__":
     loadbase("BasePlaneSimple.csv")
     for month in ["201412","201501","201502","201503","201504"]:
         gethome("i"+month,"home/userhome"+month+".txt")
         removeuser("home/userhome"+month+".txt","home/realhome"+month+".txt",100)
+        decodeuser("hashuser/hash"+month+".txt","home/realhome"+month+".txt","home/originrealhome"+month+".txt")
