@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding=utf-8
+import sys
 import time
 import random
 import os
@@ -47,9 +48,16 @@ def getmobility(lastmonth,thismonth,removepath,staypath,newpath):
             fwrm.write(line)
     fwrm.close()
 if __name__=="__main__":
+    month=sys.argv[1:]
     preffix="home/originrealhome"
-    loadhash(preffix+"201412.txt") 
-    month=["201412","201501","201502","201503","201504","201505","201506","201507","201508"]
-    for mo in range(8):
+    loadhash(preffix+month[0]+".txt")
+    tot=len(month)
+    solvecnt=0
+    totalcnt=tot-1
+    starttime=time.time()
+    for mo in range(tot-1):
         fn=month[mo]+"-"+month[mo+1]+".txt"
         getmobility(preffix+month[mo]+".txt",preffix+month[mo+1],"mobility/remove"+fn,"mobility/stay"+fn,"mobility/new"+fn)
+        solvecnt+=1
+        h,m,s=timeEvaluation(solvecnt,totalcnt,time.time()-starttime())
+        print("humanmobility: %s, completed: %d/%d=%.4f%%, remain: %02d:%02d:%02d"%(fn,solvecnt,totalcnt,solvecnt*100.0/totalcnt,h,m,s))

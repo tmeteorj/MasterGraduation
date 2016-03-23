@@ -1,3 +1,4 @@
+import sys
 import time
 import random
 import os
@@ -78,7 +79,10 @@ def decodeuser(usermappath,realhome,codehome):
     fw.close()
 if __name__=="__main__":
     loadbase("BasePlaneSimple.csv")
-    for month in ["201412","201501","201502","201503","201504"]:
+    montharr=sys.argv[1][1:]
+    for month in montharr:
         gethome("i"+month,"home/userhome"+month+".txt")
+        print("Before remove and decode users")
         removeuser("home/userhome"+month+".txt","home/realhome"+month+".txt",70)
         decodeuser("hashuser/hash"+month+".txt","home/realhome"+month+".txt","home/originrealhome"+month+".txt")
+        print("After remove and decode users")
