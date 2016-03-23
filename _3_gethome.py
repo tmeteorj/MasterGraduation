@@ -80,5 +80,5 @@ if __name__=="__main__":
     loadbase("BasePlaneSimple.csv")
     for month in ["201412","201501","201502","201503","201504"]:
         gethome("i"+month,"home/userhome"+month+".txt")
-        removeuser("home/userhome"+month+".txt","home/realhome"+month+".txt",100)
+        removeuser("home/userhome"+month+".txt","home/realhome"+month+".txt",70)
         decodeuser("hashuser/hash"+month+".txt","home/realhome"+month+".txt","home/originrealhome"+month+".txt")
