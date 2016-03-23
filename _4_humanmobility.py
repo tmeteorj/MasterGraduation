@@ -25,7 +25,7 @@ def countline(filePath):
 def loadhash(inputpath):
     global hasha
     hasha=dict()
-    for line in open(lastmonth,"r"):
+    for line in open(inputpath,"r"):
         info=line.strip().split(",")
         hasha[info[0]]=info[1]
 def getmobility(lastmonth,thismonth,removepath,staypath,newpath):
