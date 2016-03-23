@@ -1,9 +1,9 @@
-# MasterGraduation
-Some codes for my graduation project of master degree.
+1、_1_unpack.sh：
+    解压相关压缩文件，以及启动后续代码
+2、_2_infoExtract.py:
+    读取手机信令数据，去除不必要信息，仅保留通讯以及轨迹数据
+3、_3_gethome.py:
+    依照轨迹数据计算每个用户的家的位置，即夜晚出现的最多的地方，去除出现次数在70次以下的
+4、_4_humanmobility.py:
+    比较相邻月份的人口信息，获取新增人口、离开人口以及常驻人口
 
-_1_unpack.sh:
-	Shell script for unzip mobile data and start the _2_infoExtract.py
-_2_infoEtract.py:
-	Etract the infomation from mobile data, split the data into two parts, the communication part and the trajectory part
-_3_getHome.py:
-	From trajectory part, computing the home place where user live
