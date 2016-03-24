@@ -28,17 +28,20 @@ def loadhash(inputpath):
     for line in open(inputpath,"r"):
         info=line.strip().split(",")
         hasha[info[0]]=info[1]
-def getmobility(lastmonth,thismonth,removepath,staypath,newpath):
+def getmobility(lastmonth,thismonth,removepath,staypath,movepath,newpath):
     global hasha
     fwnw=open(newpath,"w")
     fwst=open(staypath,"w")
+    fwmv=open(movepath,"w")
     for line in open(thismonth,"r"):
         info=line.strip().split(",")
         if info[0] in hasha:
-            fwst.write("%s,%s,%s\n"%(info[0],hasha[info[0]],info[1]))
+            if info[0]==info[1]:fwst.write("%s,%s,%s\n"%(info[0],hasha[info[0]],info[1]))
+            else:fwmv.write("%s,%s,%s\n"%(info[0],hasha[info[0]],info[1]))
         else:
             fwnw.write(line)
     fwst.close()
+    fwmv.close()
     fwnw.close()
     loadhash(thismonth)
     fwrm=open(removepath,"w")
@@ -57,7 +60,7 @@ if __name__=="__main__":
     starttime=time.time()
     for mo in range(tot-1):
         fn=month[mo]+"-"+month[mo+1]+".txt"
-        getmobility(preffix+month[mo]+".txt",preffix+month[mo+1],"mobility/remove"+fn,"mobility/stay"+fn,"mobility/new"+fn)
+        getmobility(preffix+month[mo]+".txt",preffix+month[mo+1],"mobility/remove"+fn,"mobility/stay"+fn,"mobility/move"+fn,"mobility/new"+fn)
         solvecnt+=1
         h,m,s=timeEvaluation(solvecnt,totalcnt,time.time()-starttime())
         print("humanmobility: %s, completed: %d/%d=%.4f%%, remain: %02d:%02d:%02d"%(fn,solvecnt,totalcnt,solvecnt*100.0/totalcnt,h,m,s))
