@@ -79,7 +79,7 @@ def decodeuser(usermappath,realhome,codehome):
     fw.close()
 if __name__=="__main__":
     loadbase("BasePlaneSimple.csv")
-    montharr=sys.argv[1][1:]
+    montharr=sys.argv[1:]
     for month in montharr:
         gethome("i"+month,"home/userhome"+month+".txt")
         print("Before remove and decode users")
