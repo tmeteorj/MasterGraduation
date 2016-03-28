@@ -71,7 +71,7 @@ if __name__=="__main__":
     hashuser=dict()
     month=sys.argv[1:]
     for m in month:
-        err=getrecord(m,"i"+m,"hash"+m+".txt")
+        err=getrecord(m,"i"+m,"hashuser/hash"+m+".txt")
         deletefiles(m,err)
         if len(err)>0:
             fw=open("err_log.txt","a")
