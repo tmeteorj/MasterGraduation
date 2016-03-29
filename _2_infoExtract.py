@@ -60,14 +60,22 @@ def getrecord(inputdir,outputdir,userpath):
             err.add(f)
     for name in fw:fw[name].close()
     fw=open(userpath,"w")
+    starttime=time.time()
+    solvecnt=0
+    totalcnt=usercnt
     for u in hashuser:
         fw.write("%s,%d\n"%(u,hashuser[u]))
+        solvecnt+=1
+        if(solvecnt%10000==0):
+            h,m,s=timeEvaluation(solvecnt,totalcnt,time.time()-starttime)
+            print("writeuser[%s] completed: %d/%d -> %.3f%%, remain %02d:%02d:%02d\n"%(inputdir,solvecnt,totalcnt,solvecnt*100.0/totalcnt,h,m,s)) 
     fw.close()
     return err
 def deletefiles(inputdir,err):
     for name in os.listdir(inputdir):
         if name not in err:os.remove(inputdir+"/"+name)
 if __name__=="__main__":
+    global hashuser
     hashuser=dict()
     month=sys.argv[1:]
     for m in month:
