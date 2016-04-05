@@ -5,6 +5,11 @@ import time
 import random
 import os
 import gzip
+def gettime():
+    return time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())
+def outputinfo(info,solvecnt,totalcnt,costtime):
+    h,m,s=timeEvaluation(solvecnt,totalcnt,costtime)
+    print("[%s] %s: completed: %d/%d -> %.3f%%, remain %02d:%02d:%02d\n"%(gettime(),info,solvecnt,totalcnt,solvecnt*100.0/totalcnt,h,m,s))
 def timeEvaluation(solvecnt,totalcnt,costtime):
     if solvecnt>=totalcnt:
         return 0,0,0
@@ -62,5 +67,4 @@ if __name__=="__main__":
         fn=month[mo]+"-"+month[mo+1]+".txt"
         getmobility(preffix+month[mo]+".txt",preffix+month[mo+1],"mobility/remove"+fn,"mobility/stay"+fn,"mobility/move"+fn,"mobility/new"+fn)
         solvecnt+=1
-        h,m,s=timeEvaluation(solvecnt,totalcnt,time.time()-starttime())
-        print("humanmobility: %s, completed: %d/%d=%.4f%%, remain: %02d:%02d:%02d"%(fn,solvecnt,totalcnt,solvecnt*100.0/totalcnt,h,m,s))
+        outputinfo("humanmobility[%s]"%(fn),solvecnt,totalcnt,time.time()-starttime)

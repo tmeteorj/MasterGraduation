@@ -3,6 +3,11 @@ import time
 import random
 import os
 import gzip
+def gettime():
+    return time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())
+def outputinfo(info,solvecnt,totalcnt,costtime):
+    h,m,s=timeEvaluation(solvecnt,totalcnt,costtime)
+    print("[%s] %s: completed: %d/%d -> %.3f%%, remain %02d:%02d:%02d\n"%(gettime(),info,solvecnt,totalcnt,solvecnt*100.0/totalcnt,h,m,s))
 def timeEvaluation(solvecnt,totalcnt,costtime):
     if solvecnt>=totalcnt:
         return 0,0,0
@@ -45,8 +50,7 @@ def gethome(recorddir,homepath):
                 if info[2] not in user:user[info[2]]=dict()
                 user[info[2]][plane]=1 if plane not in user[info[2]] else user[info[2]][plane]+1
         solvecnt=solvecnt+1
-        h,m,s=timeEvaluation(solvecnt,totalcnt,time.time()-starttime)
-        print("gethome: %s, completed: %d/%d=%.4f%%, remain: %02d:%02d:%02d"%(recorddir,solvecnt,totalcnt,solvecnt*100.0/totalcnt,h,m,s))
+        outputinfo("gethome[%s]"%(recorddir),solvecnt,totalcnt,time.time()-starttime)
     result=dict()
     for u in user:
         maxcnt=0
