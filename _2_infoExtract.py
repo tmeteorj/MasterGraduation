@@ -3,6 +3,11 @@ import time
 import random
 import os
 import gzip
+def gettime():
+    return time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())
+def outputinfo(info,solvecnt,totalcnt,costtime):
+    h,m,s=timeEvaluation(solvecnt,totalcnt,costtime)
+    print("[%s] %s: completed: %d/%d -> %.3f%%, remain %02d:%02d:%02d\n"%(gettime(),info,solvecnt,totalcnt,solvecnt*100.0/totalcnt,h,m,s))
 def timeEvaluation(solvecnt,totalcnt,costtime):
     if solvecnt>=totalcnt:
         return 0,0,0
@@ -43,19 +48,19 @@ def getrecord(inputdir,outputdir,userpath):
             for line in gzip.open(inputdir+"/"+f,"rb"):
                 info=line.decode("utf-8").strip().split(",")
                 day=info[1][0:8]
+                if day[0:2]!="20" or info[4]=="da39a3ee5e6b4b0d3255bfef95601890afd80709" or info[6]=="da39a3ee5e6b4b0d3255bfef95601890afd80709":continue
                 if day not in fw:
                     fw[day]=open(outputdir+"/"+day+".txt","w")
                     fw[day+"traj"]=open(outputdir+"/"+day+"traj.txt","w")
-                if info[0] in {"1","3","6","7"} and info[4]!="da39a3ee5e6b4b0d3255bfef95601890afd80709" and info[6]!="da39a3ee5e6b4b0d3255bfef95601890afd80709":
+                if info[0] in {"1","3","6","7"}:
                     ua=adduser(info[4])
                     ub=adduser(info[6])
                     fw[day].write("%s,%s,%s-%s,%d,%d\n"%(info[0],info[1][0:17],info[2],info[3],ua,ub))
-                if info[0]=="13" and info[4]!="da39a3ee5e6b4b0d3255bfef95601890afd80709":
+                if info[0]=="13":
                     ua=adduser(info[4])
                     fw[day+"traj"].write("%s,%s-%s,%d\n"%(info[1][0:17],info[2],info[3],ua))
             solvecnt+=1
-            h,m,s=timeEvaluation(solvecnt,totalcnt,time.time()-starttime)
-            print("getrecord[%s] usercnt: %d, completed: %d/%d -> %.3f%%, remain %02d:%02d:%02d\n"%(inputdir,usercnt,solvecnt,totalcnt,solvecnt*100.0/totalcnt,h,m,s))
+            outputinfo("getrecord[%s]"%(inputdir),solvecnt,totalcnt,time.time()-starttime)
         except:
             err.add(f)
     for name in fw:fw[name].close()
@@ -67,8 +72,7 @@ def getrecord(inputdir,outputdir,userpath):
         fw.write("%s,%d\n"%(u,hashuser[u]))
         solvecnt+=1
         if(solvecnt%10000==0):
-            h,m,s=timeEvaluation(solvecnt,totalcnt,time.time()-starttime)
-            print("writeuser[%s] completed: %d/%d -> %.3f%%, remain %02d:%02d:%02d\n"%(inputdir,solvecnt,totalcnt,solvecnt*100.0/totalcnt,h,m,s)) 
+            outputinfo("writeuser[%s]"%(inputdir),solvecnt,totalcnt,time.time()-starttime)
     fw.close()
     return err
 def deletefiles(inputdir,err):
@@ -83,8 +87,7 @@ if __name__=="__main__":
         deletefiles(m,err)
         if len(err)>0:
             fw=open("err_log.txt","a")
-            t=time.strftime(ISOTIMEFORMAT,time.localtime())
             for item in err:
-                fw.write("[Error %s]: In _2_infoExtract.py, file %s can't be read\n"%(t,item))
+                fw.write("[Error %s]: In _2_infoExtract.py, file %s can't be read\n"%(gettime(),item))
             fw.close()
             
