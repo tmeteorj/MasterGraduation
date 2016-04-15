@@ -48,15 +48,15 @@ def getrecord(inputdir,outputdir,userpath):
             for line in gzip.open(inputdir+"/"+f,"rb"):
                 info=line.decode("utf-8").strip().split(",")
                 day=info[1][0:8]
-                if day[0:2]!="20":continue
+                if day[0:2]!="20" or info[4]=="da39a3ee5e6b4b0d3255bfef95601890afd80709":continue
                 if day not in fw:
                     fw[day]=open(outputdir+"/"+day+".txt","w")
                     fw[day+"traj"]=open(outputdir+"/"+day+"traj.txt","w")
-                if info[0] in {"1","3","6","7"} and info[4]!="da39a3ee5e6b4b0d3255bfef95601890afd80709" and info[6]!="da39a3ee5e6b4b0d3255bfef95601890afd80709":
+                if info[0] in {"1","3","6","7"} or info[6]!="da39a3ee5e6b4b0d3255bfef95601890afd80709":
                     ua=adduser(info[4])
                     ub=adduser(info[6])
                     fw[day].write("%s,%s,%s-%s,%d,%d\n"%(info[0],info[1][0:17],info[2],info[3],ua,ub))
-                if info[0]=="13" and info[4]!="da39a3ee5e6b4b0d3255bfef95601890afd80709":
+                if info[0]=="13":
                     ua=adduser(info[4])
                     fw[day+"traj"].write("%s,%s-%s,%d\n"%(info[1][0:17],info[2],info[3],ua))
             solvecnt+=1

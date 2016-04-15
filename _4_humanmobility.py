@@ -65,6 +65,6 @@ if __name__=="__main__":
     starttime=time.time()
     for mo in range(tot-1):
         fn=month[mo]+"-"+month[mo+1]+".txt"
-        getmobility(preffix+month[mo]+".txt",preffix+month[mo+1],"mobility/remove"+fn,"mobility/stay"+fn,"mobility/move"+fn,"mobility/new"+fn)
+        getmobility(preffix+month[mo]+".txt",preffix+month[mo+1]+".txt","mobility/remove"+fn,"mobility/stay"+fn,"mobility/move"+fn,"mobility/new"+fn)
         solvecnt+=1
         outputinfo("humanmobility[%s]"%(fn),solvecnt,totalcnt,time.time()-starttime)
