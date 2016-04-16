@@ -52,6 +52,7 @@ def getrecord(inputdir,outputdir,userpath):
                 if day not in fw:
                     fw[day]=open(outputdir+"/"+day+".txt","w")
                     fw[day+"traj"]=open(outputdir+"/"+day+"traj.txt","w")
+                    fw[day+"move"]=open(outputdir+"/"+day+"move.txt","w")
                 if info[0] in {"1","3","6","7"} or info[6]!="da39a3ee5e6b4b0d3255bfef95601890afd80709":
                     ua=adduser(info[4])
                     ub=adduser(info[6])
@@ -59,6 +60,9 @@ def getrecord(inputdir,outputdir,userpath):
                 if info[0]=="13":
                     ua=adduser(info[4])
                     fw[day+"traj"].write("%s,%s-%s,%d\n"%(info[1][0:17],info[2],info[3],ua))
+                if info[0]=="12":
+                    ua=adduser(info[4])
+                    fw[day+"move"].write("%s,%s-%s,%d\n"%(info[1][0:17],info[2],info[3],ua))
             solvecnt+=1
             outputinfo("getrecord[%s]"%(inputdir),solvecnt,totalcnt,time.time()-starttime)
         except:
