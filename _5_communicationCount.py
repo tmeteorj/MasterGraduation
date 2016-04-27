@@ -10,14 +10,14 @@ def outputinfo(info,solvecnt,totalcnt,costtime):
     h,m,s=timeEvaluation(solvecnt,totalcnt,costtime)
     print("[%s] %s: completed: %d/%d -> %.3f%%, remain %02d:%02d:%02d\n"%(gettime(),info,solvecnt,totalcnt,solvecnt*100.0/totalcnt,h,m,s))
 def timediff(t1,t2):
-    d1=datetime.datetime.strptime(t1,"%Y-%m-%d %H:%M:%S")
-    d2=datetime.datetime.strptime(t2,"%Y-%m-%d %H:%M:%S")
+    d1=datetime.datetime.strptime(t1,"%Y%m%d %H:%M:%S")
+    d2=datetime.datetime.strptime(t2,"%Y%m%d %H:%M:%S")
     return (d2-d1).total_seconds()
 def latestTime(t1,t2):
     if t1==None:return t2
     if t2==None:return t1
     if timediff(t1,t2)<0:return t2
-    else return t1
+    else:return t1
 def timeEvaluation(solvecnt,totalcnt,costtime):
     if solvecnt>=totalcnt:
         return 0,0,0
@@ -35,6 +35,17 @@ def countline(filePath):
     if(sizeF>1):count=int(count*sizeF)
     f.close()
     return count
+def countlinedir(dirpath):
+    files=os.listdir(dirpath)
+    ave=-1
+    cnt=0
+    for f in files:
+        if len(f)!=12:continue
+        p=dirpath+"/"+f
+        if ave==-1:
+            ave=1.0*countline(p)/os.path.getsize(p)
+        cnt=cnt+os.path.getsize(p)
+    return cnt*ave
 def loadBasicInfo(monthpath):
     global user
     user.clear()
@@ -59,14 +70,14 @@ def solveOneRecord(record):
         data[ad]=data[ad]+1
         prevtime=data[ad+2]
         if prevtime!=None:
-            d=diff(prevtime,ntime)
+            d=timediff(prevtime,ntime)
             data[ad+4]=data[ad+4]+d
         data[ad+2]=ntime
     elif info[0] in ["3","7"]:
         data[ad+1]=data[ad+1]+1
         prevtime=data[ad+3]
         if prevtime!=None:
-            d=diff(prevtime,ntime)
+            d=timediff(prevtime,ntime)
             data[ad+5]=data[ad+5]+d
         data[ad+3]=ntime
     ltime=latestTime(data[ad+2],data[ad+3])
@@ -77,15 +88,17 @@ def communicationGet(monthdir):
     global user
     files=os.listdir(monthdir)
     solvecnt=0
-    totalcnt=len(files)
+    totalcnt=countlinedir(monthdir)
     starttime=time.time()
     for F in files:
         #201509.txt
         solvecnt=solvecnt+1
-        if len(F)!=10:continue
+        if len(F)!=12:continue
         for line in open(monthdir+"/"+F,"r"):
             solveOneRecord(line)
-        outputinfo("communicationGet[%s]"%(monthdir),solvecnt,totalcnt,time.time()-starttime)
+            solvecnt=solvecnt+1
+            if solvecnt%100000==0:
+                outputinfo("communicationGet[%s]"%(monthdir+"/"+F),solvecnt,totalcnt,time.time()-starttime)  
 def outputPlaneAttr(outputpath):
     global user
     plane=dict()
@@ -116,13 +129,15 @@ def outputPlaneAttr(outputpath):
         fw.write("\n")
     fw.close()
 if __name__=="__main__":
+    global user
+    user=dict()
     month=sys.argv[1:]
     solvecnt=0
     totalcnt=len(month)
     starttime=time.time()
     for m in month:
-        loadBasicInfo("home/userhome"+month+".txt")
-        communicationGet("i"+month)
-        outputinfo("outputPlaneAttr[%s]"%(m),0,1,0)
-        outputPlaneAttr("plane/communicationCount"+month+".txt")
+        loadBasicInfo("home/userhome"+m+".txt")
+        communicationGet("i"+m)
+        outputinfo("outputPlaneAttr[%s]"%(m),1,1,0)
+        outputPlaneAttr("plane/communicationCount"+m+".txt")
         outputinfo("outputPlaneAttr[%s]"%(m),1,1,0)
