@@ -63,9 +63,10 @@ def gethome(recorddir,homepath,maxthred):
     files=os.listdir(recorddir)
     files.sort()
     solvecnt=0
-    totalcnt=len(files)/2
+    totalcnt=len(files)
     starttime=time.time()
     for name in files:
+        solvecnt=solvecnt+1
         if name.find("traj.txt")==-1:continue
         gethomefromsinglefile(recorddir+"/"+name,user)
         solvecnt=solvecnt+1
@@ -81,19 +82,9 @@ def decodeuser(usermappath,realhome,codehome):
         info=line.strip().split(",")
         fw.write("%s,%s\n"%(hashuser[info[0]],info[1]))
     fw.close()
-def getanother():
-    loadbase("BasePlaneSimple.csv")
-    montharr=sys.argv[1:]
-    for month in montharr:
-        user=dict()
-        gethomefromsinglefile("i"+month+"/"+month+"traj.txt",user)
-        outputuserhome(user,70,"home/userhome"+month+".txt")
-        decodeuser("hashuser/hash"+month+".txt","home/userhome"+month+".txt","home/originrealhome"+month+".txt")
-def getall():
+if __name__=="__main__":
     loadbase("BasePlaneSimple.csv")
     montharr=sys.argv[1:]
     for month in montharr:
         gethome("i"+month,"home/userhome"+month+".txt",70)
         decodeuser("hashuser/hash"+month+".txt","home/userhome"+month+".txt","home/originrealhome"+month+".txt")
-if __name__=="__main__":
-    getanother()
