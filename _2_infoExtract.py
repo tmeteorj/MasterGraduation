@@ -53,7 +53,7 @@ def getrecord(inputdir,outputdir,userpath):
                     fw[day]=open(outputdir+"/"+day+".txt","w")
                     fw[day+"traj"]=open(outputdir+"/"+day+"traj.txt","w")
                     fw[day+"move"]=open(outputdir+"/"+day+"move.txt","w")
-                if info[0] in {"1","3","6","7"} or info[6]!="da39a3ee5e6b4b0d3255bfef95601890afd80709":
+                if info[0] in {"1","3","6","7"} and info[6]!="da39a3ee5e6b4b0d3255bfef95601890afd80709":
                     ua=adduser(info[4])
                     ub=adduser(info[6])
                     fw[day].write("%s,%s,%s-%s,%d,%d\n"%(info[0],info[1][0:17],info[2],info[3],ua,ub))

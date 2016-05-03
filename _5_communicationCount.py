@@ -66,6 +66,7 @@ def solveOneRecord(record):
     data=user[info[3]]
     if info[0] in ["1","3"]:ad=1
     elif info[0] in ["6","7"]:ad=8
+    else:return
     if info[0] in ["1","6"]:
         data[ad]=data[ad]+1
         prevtime=data[ad+2]
