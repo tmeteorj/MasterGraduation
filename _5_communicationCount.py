@@ -66,6 +66,7 @@ def solveOneRecord(record):
     data=user[info[3]]
     if info[0] in ["1","3"]:ad=1
     elif info[0] in ["6","7"]:ad=8
+    else:return
     if info[0] in ["1","6"]:
         data[ad]=data[ad]+1
         prevtime=data[ad+2]
@@ -91,7 +92,7 @@ def communicationGet(monthdir):
     totalcnt=countlinedir(monthdir)
     starttime=time.time()
     for F in files:
-        #201509.txt
+        #20150901.txt
         solvecnt=solvecnt+1
         if len(F)!=12:continue
         for line in open(monthdir+"/"+F,"r"):
@@ -123,7 +124,7 @@ def outputPlaneAttr(outputpath):
     for pid in plane:
         first=True
         for x in plane[pid]:
-            if first:fw.write(x)
+            if first:fw.write(str(x))
             else:fw.write(","+str(x))
             first=False
         fw.write("\n")

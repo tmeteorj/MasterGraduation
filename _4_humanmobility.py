@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 # coding=utf-8
 import sys
@@ -41,7 +42,7 @@ def getmobility(lastmonth,thismonth,removepath,staypath,movepath,newpath):
     for line in open(thismonth,"r"):
         info=line.strip().split(",")
         if info[0] in hasha:
-            if info[0]==info[1]:fwst.write("%s,%s,%s\n"%(info[0],hasha[info[0]],info[1]))
+            if hasha[info[0]]==info[1]:fwst.write("%s,%s,%s\n"%(info[0],hasha[info[0]],info[1]))
             else:fwmv.write("%s,%s,%s\n"%(info[0],hasha[info[0]],info[1]))
         else:
             fwnw.write(line)
