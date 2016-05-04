@@ -49,6 +49,9 @@ def keepKeyPoint(keypointpath,matdir,outputpath):
     fw=open(outputpath,"w")
     op=-1
     nl=-1
+    solvecnt=0
+    totalcnt=len(s)
+    starttime=time.time()
     for linenum in s:
         tof=linenum/1000
         tol=linenum%1000
@@ -67,6 +70,8 @@ def keepKeyPoint(keypointpath,matdir,outputpath):
                 fw.write(",")
             fw.write(info[x])
         fw.write("\n")
+        solvecnt=solvecnt+1
+        outputinfo("KeepKeyPoint[%d]"%(linenum),solvecnt,totalcnt,time.time()-starttime)
     fw.close()
 def loadKeyDist(keypath,distpath):
     global dist
