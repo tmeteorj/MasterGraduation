@@ -1,4 +1,3 @@
-import linecache
 import sys
 import time
 import random
@@ -48,8 +47,18 @@ def keepKeyPoint(keypointpath,matdir,outputpath):
     s=list(s)
     s.sort()
     fw=open(outputpath,"w")
+    op=-1
+    nl=-1
     for linenum in s:
-        line=linecache.getline(matdir+"/MatDist"+str(linenum/1000)+".txt",linenum%1000+1)
+        tof=linenum/1000
+        tol=linenum%1000
+        if op==-1 or op!=tof:
+            nl=0
+            op=linenum/1000
+            fr=open(matdir+"/MatDist"+str(op)+".txt","r")
+        while nl<=tol:
+            line=fr.readline()
+            nl=nl+1
         info=line.strip().split(" ")
         first=True
         for x in s:
@@ -88,7 +97,7 @@ def computeDist(pa,pb):
             elif b<a:ans=ans+dist[b][a]
     tot=len(pa)*len(pb)
     return ans/tot
-def getPlaneDist(baseplanemappath,planedistpath)
+def getPlaneDist(baseplanemappath,planedistpath):
     global basep
     plane=dict()
     for line in open(baseplanemappath,"r"):
