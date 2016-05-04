@@ -38,6 +38,7 @@ def sortBasePointMap(basepointpath,keypointpath):
         if lastk!=-1 and lastk!=x[1]:
             fw2.write("%d\n"%(lastk))
         lastk=x[1]
+    if lastk!=-1:fw2.write("%d\n"%(lastk))
     fw1.close()
     fw2.close()
 def keepKeyPoint(keypointpath,matdir,outputpath):
@@ -90,6 +91,7 @@ def loadKeyDist(keypath,distpath):
         i=i+1
 def loadBaseMap(basepointpath):
     global basep
+    basep=dict()
     for line in open(basepointpath):
         info=line.strip().split(",")
         basep[info[0]]=int(info[1])
@@ -111,17 +113,22 @@ def getPlaneDist(baseplanemappath,planedistpath):
         plane[info[3]].append(basep[info[0]])
     fw=open(planedistpath,"w")
     plane=sorted(plane.items(),key=lambda arg:int(arg[0]))
+    solvecnt=0
+    totalcnt=len(plane)
+    starttime=time.time()
     for a in plane:
         first=True
         for b in plane:
             if first:first=False
             else:fw.write(",")
             if(a[0]==b[0]):fw.write("0")
-            else:fw.write(str(computeDist(a[1:],b[1:])))
+            else:fw.write(str(computeDist(a[1],b[1])))
         fw.write("\n")
+        solvecnt=solvecnt+1
+        outputinfo("getPlane[%s]"%(a[0]),solvecnt,totalcnt,time.time()-starttime)
     fw.close()
 if __name__=="__main__":
-#    sortBasePointMap("data/BasePointMap.txt","data/KeyPoint.txt")
+    sortBasePointMap("data/BasePointMap.txt","data/KeyPoint.txt")
     keepKeyPoint("data/KeyPoint.txt","Mat","data/KeyDist.txt")
     loadBaseMap("data/BasePointMap.txt")
     loadKeyDist("data/KeyPoint.txt","data/KeyDist.txt")
