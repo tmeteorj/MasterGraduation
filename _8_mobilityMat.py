@@ -48,7 +48,7 @@ def computeMobilityMat(inputdir,outputdir,month):
     fw=open(outputdir+"/mat"+month,"w")
     for ua in mat:
         for ub in mat[ua]:
-            fw.write("%d %d %d\n"%(ua,ub,mat[ua][ub]))
+            fw.write("%d,%d,%d\n"%(ua,ub,mat[ua][ub]))
     fw.close()
 if __name__=="__main__":
     montharr=sys.argv[1:]
