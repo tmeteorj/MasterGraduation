@@ -27,8 +27,20 @@ def makeanmonth(year,month,minv,maxv,fw):
     else:daycnt=28+(1 if year%400==0 or (year%4==0 and year%100!=0) else 0)
     for day in range(1,daycnt+1):
         makeanday(year,month,day,fw,makeint2(minv,maxv))
-if __name__=="__main__":
-    fw=gzip.GzipFile(filename="testdata.txt",mode="wb",compresslevel=9,fileobj=open("201408/201408.zip","wb"))
-    makeanmonth(2014,8,10000,50000,fw)
+def makeMat(path,n,m):
+    fw=open(path,"w")
+    for i in range(n):
+        for j in range(m):
+            fw.write(str(random.random()*1000))
+            if j==m-1:fw.write("\n")
+            else:fw.write(" ")
     fw.close()
-
+def makeMats(dirpath,tot,n):
+    fl=tot//n
+    for i in range(fl):
+        makeMat(dirpath+"/MatDist"+str(i)+".txt",n,tot)
+    if tot%n!=0:
+        n=tot-n*fl
+        makeMat(dirpath+"/MatDist"+str(fl)+".txt",n,tot)
+if __name__=="__main__":
+    makeMats("Mat",106,10)
