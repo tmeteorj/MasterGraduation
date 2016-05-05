@@ -42,8 +42,7 @@ def computeDegree(inputpath,homedir,outputdir):
     pd=dict()
     up=dict()
     #pd[id]=[callpopulation,messpopulation]
-    month=201412
-    loadHome(homedir,str(month))
+    month=-1
     solvecnt=0
     totalcnt=countline(inputpath)
     rate=max(totalcnt/100000,1)
@@ -53,6 +52,9 @@ def computeDegree(inputpath,homedir,outputdir):
         item=line.strip().split("\t")
         us=[int(t) for t in item[0].split(",")]
         cs=[int(t) for t in item[1].split(",")]
+        if month==-1:
+            month=us[0]
+            loadHome(homedir,str(month))
         if month!=us[0]:
             outputUserDegree(outputdir+"/degree"+str(month)+".txt")
             pd.clear()

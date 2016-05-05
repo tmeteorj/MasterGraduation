@@ -27,7 +27,7 @@ def countline(filePath):
     return count
 def getInfomapData(inputpath,outputdir):
     #month,u1,u2    call,mess
-    month=201412
+    month=-1
     solvecnt=0
     totalcnt=countline(inputpath)
     rate=max(totalcnt/100000,1)
@@ -44,6 +44,7 @@ def getInfomapData(inputpath,outputdir):
         item=line.strip().split("\t")
         us=[int(t) for t in item[0]]
         cs=[int(t) for t in item[1]]
+        if month==-1:month=us[0]
         if month!=us[0]:
             tmpc.close()
             tmpm.close()
