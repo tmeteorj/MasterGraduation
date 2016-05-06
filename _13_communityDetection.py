@@ -118,23 +118,25 @@ def loadUser(inputpath):
     global us
     us.clear()
     for line in open(inputpath,"r"):
-        us.add(int(line[0:line.index(",")]))
+        info=line.strip().split(",")
+        us[int(info[0])]=int(info[1])
 def getSocialData(inputdir,outputdir,homedir):
     global us
-    us=set()
+    us=dict()
     files=os.listdir(inputdir)
     solvecnt=0
     totalcnt=len(files)
     starttime=time.time()
     for f in files:
-        loadUser(homedir+"/userhome"+f[f.index("2"):f.index(".")]+".txt")
+        mon=f[f.index("2"):f.index(".")]
+        loadUser(homedir+"/userhome"+mon+".txt")
         fw=open(outputdir+"/"+f.replace(".tree",".txt"),"w")
         for line in open(inputdir+"/"+f,"r"):
             if line[0]=="#":continue
-            info=line.split(" ")
-            social=info[0].split(":")
+            info=line.strip().split(" ")
             user=int(info[2][1:-1])
             if user not in us:continue
+            social=info[0].split(":")
             idx=min(len(social)-1,1)
             fw.write("%d,%s\n"%(user,social[idx]))
         fw.close()
@@ -142,3 +144,4 @@ def getSocialData(inputdir,outputdir,homedir):
         outputinfo("getSocialData[%s]"%(f),solvecnt,totalcnt,time.time()-starttime)
 if __name__=="__main__":
     getInfomapData("communicationNetwork.txt","network")
+    #getSocialData("network","community","home")
