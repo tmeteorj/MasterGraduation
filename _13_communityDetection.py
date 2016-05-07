@@ -25,12 +25,8 @@ def countline(filePath):
     if(sizeF>1):count=int(count*sizeF)
     f.close()
     return count
-def getInfomapData(inputpath,outputdir):
+def getInfomapData(inputdir,outputdir,month):
     #month,u1,u2    call,mess
-    month=-1
-    solvecnt=0
-    totalcnt=countline(inputpath)
-    rate=max(totalcnt/100000,1)
     tmpc=open("tmpcall.txt","w")
     tmpm=open("tmpmess.txt","w")
     hsc=dict()
@@ -39,40 +35,14 @@ def getInfomapData(inputpath,outputdir):
     nm=0
     nce=0
     nme=0
+    solvecnt=0
+    totalcnt=countline(inputpath)
+    rate=max(totalcnt/100000,1)
     starttime=time.time()
-    for line in open(inputpath,"r"):
+    for line in open(inputdir+"/network"+month+".txt","r"):
         item=line.strip().split("\t")
         us=[int(t) for t in item[0]]
         cs=[int(t) for t in item[1]]
-        if month==-1:month=us[0]
-        if month!=us[0]:
-            tmpc.close()
-            tmpm.close()
-            fwc=open(outputdir+"/imCall"+str(month)+".net","w")
-            fwc.write("*Vertices %d\n"%(nc))
-            for x in sorted(hsc.items(),key=lambda arg:arg[1]):
-                fwc.write("%d \"%d\"\n"%(x[1],x[0]))
-            fwc.write("*Edges %d\n"%(nce))
-            for line in open("tmpcall.txt","r"):
-                fwc.write(line)
-            fwc.close()
-            fwm=open(outputdir+"/imMess"+str(month)+".net","w")
-            fwm.write("*Vertices %d\n"%(nm))
-            for x in sorted(hsm.items(),key=lambda arg:arg[1]):
-                fwm.write("%d \"%d\"\n"%(x[1],x[0]))
-            fwm.write("*Edges %d\n"%(nme))
-            for line in open("tmpmess.txt","r"):
-                fwm.write(line)
-            fwm.close()
-            hsc.clear()
-            hsm.clear()
-            nc=0
-            nm=0
-            nce=0
-            nme=0
-            tmpc=open("tmpcall.txt","w")
-            tmpm=open("tmpmess.txt","w")
-            month=us[0]
         if cs[0]>0:
             u=[0,0]
             for i in range(2):
@@ -93,7 +63,7 @@ def getInfomapData(inputpath,outputdir):
             tmpm.write("%d %d %d\n"%(u[0],u[1],cs[1]))
         solvecnt=solvecnt+1
         if random.random()*rate<1:
-            outputinfo("getInfoMapData[%d]"%(month),solvecnt,totalcnt,time.time()-starttime)
+            outputinfo("getInfoMapData[%s]"%(month),solvecnt,totalcnt,time.time()-starttime)
     tmpc.close()
     tmpm.close()
     fwc=open(outputdir+"/imCall"+str(month)+".net","w")
@@ -143,5 +113,7 @@ def getSocialData(inputdir,outputdir,homedir):
         solvecnt=solvecnt+1
         outputinfo("getSocialData[%s]"%(f),solvecnt,totalcnt,time.time()-starttime)
 if __name__=="__main__":
-    getInfomapData("communicationNetwork.txt","network")
+    months=sys.argv[1:]
+    for month in months:
+        getInfomapData("network","community",month)
     #getSocialData("network","community","home")

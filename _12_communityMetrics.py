@@ -37,29 +37,21 @@ def loadHome(homedir,month):
     for line in open(homedir+"/userhome"+month+".txt","r"):
         info=[int(t) for t in line.strip().split(",")]
         up[info[0]]=info[1]
-def computeDegree(inputpath,homedir,outputdir):
+def computeDegree(inputdir,homedir,outputdir,month):
     global pd,up
     pd=dict()
     up=dict()
     #pd[id]=[callpopulation,messpopulation]
-    month=-1
     solvecnt=0
     totalcnt=countline(inputpath)
     rate=max(totalcnt/100000,1)
     starttime=time.time()
-    for line in open(intputpath,"r"):
+    loadHome(homedir,month)
+    for line in open(intputdir+"/network"+month+".txt","r"):
         #month,u1,u2\tc1,c2
         item=line.strip().split("\t")
         us=[int(t) for t in item[0].split(",")]
         cs=[int(t) for t in item[1].split(",")]
-        if month==-1:
-            month=us[0]
-            loadHome(homedir,str(month))
-        if month!=us[0]:
-            outputUserDegree(outputdir+"/degree"+str(month)+".txt")
-            pd.clear()
-            month=us[0]
-            loadHome(homedir,str(month))
         for u in us[1:]:
             if u not in up:continue
             p=up[u]
@@ -68,7 +60,9 @@ def computeDegree(inputpath,homedir,outputdir):
                 if cs[i]>0:pd[p][i]=pd[p][i]+1
         solvecnt=solvecnt+1
         if random.random()*rate<1:
-            outputinfo("computeDegree[%d]"%(month),solvecnt,totalcnt,time.time()-starttime)
-    outputUserDegree(outputdir+"/degree"+str(month)+".txt")
+            outputinfo("computeDegree[%s]"%(month),solvecnt,totalcnt,time.time()-starttime)
+    outputUserDegree(outputdir+"/degree"+month+".txt")
 if __name__=="__main__":
-    computeDegree("communicationNetwork.txt","home","plane")
+    months=sys.argv[1:]
+    for month in months:
+        computeDegree("network","home","plane",month)
