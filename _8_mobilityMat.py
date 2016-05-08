@@ -35,15 +35,18 @@ def computeMobilityMat(inputdir,outputdir,month):
     for line in open(inputdir+"/remove"+month,"r"):
         info=line.strip().split(",")
         u=int(info[1])
+        if u not in mat:mat[u]=dict()
         mat[u][-1]=1 if -1 not in mat[u] else mat[u][-1]+1
     for line in open(inputdir+"/move"+month,"r"):
         info=line.strip().split(",")
         ua=int(info[1])
         ub=int(info[2])
+        if ua not in mat:mat[ua]=dict()
         mat[ua][ub]=1 if ub not in mat[ua] else mat[ua][ub]+1
     for line in open(inputdir+"/stay"+month,"r"):
         info=line.strip().split(",")
         ua=int(info[1])
+        if ua not in mat:mat[ua]=dict()
         mat[ua][ua]=1 if ua not in mat[ua] else mat[ua][ua]+1
     fw=open(outputdir+"/mat"+month,"w")
     for ua in mat:

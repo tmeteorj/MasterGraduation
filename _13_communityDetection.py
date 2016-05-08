@@ -36,10 +36,10 @@ def getInfomapData(inputdir,outputdir,month):
     nce=0
     nme=0
     solvecnt=0
-    totalcnt=countline(inputpath)
+    totalcnt=countline(inputdir+"/net"+month+".txt")
     rate=max(totalcnt/100000,1)
     starttime=time.time()
-    for line in open(inputdir+"/network"+month+".txt","r"):
+    for line in open(inputdir+"/net"+month+".txt","r"):
         item=line.strip().split("\t")
         us=[int(t) for t in item[0]]
         cs=[int(t) for t in item[1]]

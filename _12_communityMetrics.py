@@ -43,11 +43,11 @@ def computeDegree(inputdir,homedir,outputdir,month):
     up=dict()
     #pd[id]=[callpopulation,messpopulation]
     solvecnt=0
-    totalcnt=countline(inputpath)
-    rate=max(totalcnt/100000,1)
+    totalcnt=countline(inputdir+"/net"+month+".txt")
+    rate=max(totalcnt/1000,1)
     starttime=time.time()
     loadHome(homedir,month)
-    for line in open(intputdir+"/network"+month+".txt","r"):
+    for line in open(intputdir+"/net"+month+".txt","r"):
         #month,u1,u2\tc1,c2
         item=line.strip().split("\t")
         us=[int(t) for t in item[0].split(",")]
