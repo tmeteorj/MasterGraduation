@@ -25,7 +25,23 @@ def countline(filePath):
     if(sizeF>1):count=int(count*sizeF)
     f.close()
     return count
-def getInfomapData(inputdir,outputdir,month):
+def loadHome(homedir,month):
+    global up
+    up.clear()
+    for line in open(homedir+"/userhome"+month+".txt","r"):
+        info=[int(t) for t in line.strip().split(",")]
+        up[info[0]]=info[1]
+def outputUserDegree(outputpath):
+    global pd
+    fw=open(outputpath,"w")
+    for p in pd:
+        fw.write("%d,%d,%d\n"%(p,pd[p][0],pd[p][1]))
+    fw.close()
+def getInfomapData(inputdir,homedir,outputdir,outputdir2,month):
+    global pd,up
+    pd=dict()
+    up=dict()
+    loadHome(homedir,month)
     #month,u1,u2    call,mess
     tmpc=open("tmpcall.txt","w")
     tmpm=open("tmpmess.txt","w")
@@ -37,12 +53,12 @@ def getInfomapData(inputdir,outputdir,month):
     nme=0
     solvecnt=0
     totalcnt=countline(inputdir+"/net"+month+".txt")
-    rate=max(totalcnt/100000,1)
+    rate=max(totalcnt/1000,1)
     starttime=time.time()
     for line in open(inputdir+"/net"+month+".txt","r"):
         item=line.strip().split("\t")
-        us=[int(t) for t in item[0]]
-        cs=[int(t) for t in item[1]]
+        us=[int(t) for t in item[0].strip().split(",")]
+        cs=[int(t) for t in item[1].strip().split(",")]
         if cs[0]>0:
             u=[0,0]
             for i in range(2):
@@ -61,6 +77,12 @@ def getInfomapData(inputdir,outputdir,month):
                 u[i]=hsm[us[i]]
             nme=nme+1
             tmpm.write("%d %d %d\n"%(u[0],u[1],cs[1]))
+        for u in us[1:]:
+            if u not in up:continue
+            p=up[u]
+            if p not in pd:pd[p]=[0,0]
+            for i in range(2):
+                if cs[i]>0:pd[p][i]=pd[p][i]+1
         solvecnt=solvecnt+1
         if random.random()*rate<1:
             outputinfo("getInfoMapData[%s]"%(month),solvecnt,totalcnt,time.time()-starttime)
@@ -84,6 +106,7 @@ def getInfomapData(inputdir,outputdir,month):
     fwm.close()
     os.remove("tmpmess.txt")
     os.remove("tmpcall.txt")
+    outputUserDegree(outputdir2+"/degree"+month+".txt")
 def loadUser(inputpath):
     global us
     us.clear()
@@ -115,5 +138,5 @@ def getSocialData(inputdir,outputdir,homedir):
 if __name__=="__main__":
     months=sys.argv[1:]
     for month in months:
-        getInfomapData("network","community",month)
+        getInfomapData("network","home","infomapdata","plane",month)
     #getSocialData("network","community","home")

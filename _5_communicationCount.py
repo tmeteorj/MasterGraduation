@@ -94,16 +94,20 @@ def communicationGet(monthdir):
     for F in files:
         #20150901.txt
         solvecnt=solvecnt+1
-        if len(F)!=12:continue
         for line in open(monthdir+"/"+F,"r"):
             solveOneRecord(line)
             solvecnt=solvecnt+1
             if solvecnt%100000==0:
-                outputinfo("communicationGet[%s]"%(monthdir+"/"+F),solvecnt,totalcnt,time.time()-starttime)  
-def outputPlaneAttr(outputpath):
+                outputinfo("communicationGet[%s]"%(monthdir+"/"+F),solvecnt,totalcnt,time.time()-starttime)
+def outputPlaneAttr(outputpath,userpath):
     global user
     plane=dict()
+    fw=open(userpath,"w")
     for u in user:
+        fw.write(str(u))
+        for x in user[u]:
+            fw.write(","+x)
+        fw.write("\n")
         data=user[u]
         pid=data[0]
         #population  call_out  call_in  call_out_time  call_in_time  call_time  message_out  message_in message_out_time  message_in_time  message_time
@@ -119,14 +123,13 @@ def outputPlaneAttr(outputpath):
         plane[pid][8]=plane[pid][8]+data[12]
         plane[pid][9]=plane[pid][9]+data[13]
         plane[pid][10]=plane[pid][10]+data[14]
+    fw.close()
     fw=open(outputpath,"w")
     fw.write("planeID,population,callOut,callIn,callOutTime,callInTime,callTime,messOut,messIn,messOutTime,messInTime,messTime\n")
     for pid in plane:
-        first=True
+        fw.write(str(pid))
         for x in plane[pid]:
-            if first:fw.write(str(x))
-            else:fw.write(","+str(x))
-            first=False
+            fw.write(","+str(x))
         fw.write("\n")
     fw.close()
 if __name__=="__main__":
@@ -138,7 +141,7 @@ if __name__=="__main__":
     starttime=time.time()
     for m in month:
         loadBasicInfo("home/userhome"+m+".txt")
-        communicationGet("i"+m)
+        communicationGet("DataCom/com"+m)
         outputinfo("outputPlaneAttr[%s]"%(m),1,1,0)
-        outputPlaneAttr("plane/communicationCount"+m+".txt")
+        outputPlaneAttr("plane/communicationCount"+m+".txt","user/behavior"+m+".txt")
         outputinfo("outputPlaneAttr[%s]"%(m),1,1,0)
