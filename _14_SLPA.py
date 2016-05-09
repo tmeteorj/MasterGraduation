@@ -1,10 +1,11 @@
 import time
 import random
 import os
+import sys
 import psutil
 def gettime():
     return time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())
-def outputinfo(info):
+def outputinfow(info):
     print("[%s] %s\n"%(gettime(),info))
 def outputinfo(info,solvecnt,totalcnt,costtime):
     h,m,s=timeEvaluation(solvecnt,totalcnt,costtime)
@@ -49,7 +50,7 @@ def iteration():
         label=getMaxLabel(labs,maxv)
         nodelabel[now].append(label)
 def initSLPA(filePath,widx):
-    outputinfo("Start initSLPA: "+filePath)
+    outputinfow("Start initSLPA: "+filePath)
     #month,ua,ub  cntcall,cntmess
     global nodelabel,edge,degree,cntedge,perm
     nodelabel=dict()
@@ -75,7 +76,7 @@ def initSLPA(filePath,widx):
         edge[us[2]][us[1]]=cs[widx]
         degree[us[2]]+=cs[widx]
         cntedge[us[2]]+=1
-    outputinfo("End initSLPA: "+filePath)
+    outputinfow("End initSLPA: "+filePath)
 def getMaxMark(li,thrscnt):
     cnt=dict()
     maxv=-1
@@ -91,14 +92,17 @@ def getMaxMark(li,thrscnt):
         for x in cnt:
             if cnt[x]==maxv:ans.append(x)
     return ans
-def SLPA(filePath,itertimes,thrs,outputpath):
+def SLPA(filePath,itertimes,thrs,outputpath,widx):
     global perm,nodelabel
-    initSLPA(filePath)
+    initSLPA(filePath,widx)
     starttime=time.time()
     for it in range(itertimes):
         random.shuffle(perm)
         iteration()
         outputinfo("SLPA[%s]"%(filePath),it,itertimes,time.time()-starttime)
+        if psutil.virtual_memory().percent>98:
+            print("out of memory!!!!!!!!!!!!")
+            sys.exit()
     thrscnt=int(itertimes*thrs/100)
     fw=open(outputpath,"w")
     comid=dict()
@@ -116,4 +120,5 @@ def SLPA(filePath,itertimes,thrs,outputpath):
 if __name__=="__main__":
     months=sys.argv[1:] 
     for month in months:
-        SLPA("network/net"+month+".txt",100,100,"community/node"+month+".txt")
+        SLPA("network/net"+month+".txt",100,100,"community/nodeCall"+month+".txt",0)
+        SLPA("network/net"+month+".txt",100,100,"community/nodeMess"+month+".txt",1)
