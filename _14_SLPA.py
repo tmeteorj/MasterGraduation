@@ -1,6 +1,7 @@
 import time
 import random
 import os
+import sys
 import psutil
 def gettime():
     return time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())
@@ -91,14 +92,17 @@ def getMaxMark(li,thrscnt):
         for x in cnt:
             if cnt[x]==maxv:ans.append(x)
     return ans
-def SLPA(filePath,itertimes,thrs,outputpath):
+def SLPA(filePath,itertimes,thrs,outputpath,widx):
     global perm,nodelabel
-    initSLPA(filePath)
+    initSLPA(filePath,widx)
     starttime=time.time()
     for it in range(itertimes):
         random.shuffle(perm)
         iteration()
         outputinfo("SLPA[%s]"%(filePath),it,itertimes,time.time()-starttime)
+        if psutil.virtual_memory().percent>98:
+            print("out of memory!!!!!!!!!!!!")
+            sys.exit()
     thrscnt=int(itertimes*thrs/100)
     fw=open(outputpath,"w")
     comid=dict()
