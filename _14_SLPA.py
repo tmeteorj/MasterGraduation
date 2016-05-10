@@ -151,5 +151,6 @@ def chooseOneDir(inputdir,outputdir):
 if __name__=="__main__":
     months=sys.argv[1:] 
 #    for month in months:
-#        SLPA("network/net"+month+".txt",100,100,"community/node"+month+".txt")
+#        SLPA("network/net"+month+".txt",100,100,"community/nodeCall"+month+".txt",0)
+#        SLPA("network/net"+month+".txt",100,100,"community/nodeMess"+month+".txt",1)
     chooseOneDir("community","communitySingle")

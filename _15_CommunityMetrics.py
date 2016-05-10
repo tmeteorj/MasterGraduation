@@ -71,6 +71,8 @@ def getNMI(ida,idb,idr):
             pb.clear()
             pab.clear()
             ct=0
+        solvecnt=solvecnt+1
+        outputinfo("getNMI(%d,%d,%d)"%(ida,idb,idr),solvecnt,totalcnt,time.time()-starttime)
     ha=0.0
     hb=0.0
     mi=0.0
@@ -83,6 +85,26 @@ def getNMI(ida,idb,idr):
         nmi=2*mi/(ha+hb)
         if last not in result:result[last]=[0,0,0]
         result[last][idr]=nmi
+def getCommunityNumber(outputpath):
+    global usercom
+    comcnt=dict()
+    last=None
+    for item in sorted(usercom.items(),key=lambda arg:arg[1][0]):
+        if last==None:
+            last=item[1][0]
+            ct=[set(),set()]
+        if last==item[1][0]:
+            ct[0].add(item[1][1])
+            ct[1].add(item[1][2])
+        else:
+            comcnt[last]=[len(ct[0]),len(ct[1])]
+            last=item[1][0]
+            ct[0].clear()
+            ct[1].clear()
+    fw=open(outputpath,"w")
+    for x in sorted(comcnt.items(),key=lambda arg:arg[0]):
+        fw.write("%d,%d,%d\n"%(x[0],x[1][0],x[1][1]))
+    fw.close()
 def outputNMI(outputpath):
     global result
     fw=open(outputpath,"w")
@@ -104,3 +126,6 @@ if __name__=="__main__":
         getNMI(1,2,0)
         getNMI(1,0,1)
         getNMI(2,0,2)
+        outputNMI("plane/nmi"+month+".txt")
+        getCommunityNumber("plane/comcnt"+month+".txt")
+
