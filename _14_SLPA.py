@@ -4,7 +4,7 @@ import os
 import psutil
 def gettime():
     return time.strftime("%Y-%m-%d %H:%M:%S",time.localtime())
-def outputinfo(info):
+def outputinfow(info):
     print("[%s] %s\n"%(gettime(),info))
 def outputinfo(info,solvecnt,totalcnt,costtime):
     h,m,s=timeEvaluation(solvecnt,totalcnt,costtime)
@@ -49,7 +49,7 @@ def iteration():
         label=getMaxLabel(labs,maxv)
         nodelabel[now].append(label)
 def initSLPA(filePath,widx):
-    outputinfo("Start initSLPA: "+filePath)
+    outputinfow("Start initSLPA: "+filePath)
     #month,ua,ub  cntcall,cntmess
     global nodelabel,edge,degree,cntedge,perm
     nodelabel=dict()
@@ -75,7 +75,7 @@ def initSLPA(filePath,widx):
         edge[us[2]][us[1]]=cs[widx]
         degree[us[2]]+=cs[widx]
         cntedge[us[2]]+=1
-    outputinfo("End initSLPA: "+filePath)
+    outputinfow("End initSLPA: "+filePath)
 def getMaxMark(li,thrscnt):
     cnt=dict()
     maxv=-1
@@ -113,7 +113,39 @@ def SLPA(filePath,itertimes,thrs,outputpath):
 	        fw.write(","+str(comid[x]))
         fw.write("\n")
     fw.close()
+def chooseOneFile(inputpath,outputpath,homepath):
+    com=dict()
+    cnt=0
+    ucom=dict()
+    for line in open(inputpath,"r"):
+        info=[int(t) for t in line.strip().split(",")]
+        li=list()
+        for x in inf[1:]:
+            if x not in com:
+                cnt=cnt+1
+                com[x]=cnt
+            li.append(com[x])
+        ucom[info[0]]=random.choice(li)
+    for line in open(homepath,"r"):
+        info=[int(t) for t in line.strip().split(",")]
+        if info[0] not in ucom:
+            cnt=cnt+1
+            ucom[info[0]]=cnt
+    fw=open(outputpath,"w")
+    for x in sorted(ucom.items(),key=lambda arg:arg[0]):
+        fw.write("%d,%d\n"%(x[0],x[1]))
+    fw.close()
+def chooseOneDir(inputdir,outputdir):
+    files=os.listdir(inputdir)
+    solvecnt=0
+    totalcnt=len(files)
+    starttime=time.time()
+    for f in files:
+        chooseOneFile(inputdir+"/"+f,outputdir+"/"+f)
+        solvecnt=solvecnt+1
+        outputinfo("chooseOneFile[%s]"%(f),solvecnt,totalcnt,time.time()-starttime)
 if __name__=="__main__":
     months=sys.argv[1:] 
-    for month in months:
-        SLPA("network/net"+month+".txt",100,100,"community/node"+month+".txt")
+#    for month in months:
+#        SLPA("network/net"+month+".txt",100,100,"community/node"+month+".txt")
+    chooseOneDir("community","communitySingle")
