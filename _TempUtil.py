@@ -37,5 +37,25 @@ def removeTime(inputdir,outputdir):
             u=line.strip().split(",")
             fw.write("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n"%(u[0],u[1],u[2],u[3],u[6],u[7],u[8],u[9],u[10],u[13],u[14],u[15]))
         fw.close()
+def removeUncitizen(userpath,inputdir,outputdir):
+    user=set()
+    for line in open(userpath,"r"):
+        user.add(line[:line.index(",")])
+    files=os.listdir(inputdir)
+    solvecnt=0
+    totalcnt=len(files)
+    starttime=time.time()
+    for f in files:
+        fw=open(outputdir+"/"+f,"w")
+        for line in open(inputdir+"/"+f,"r"):
+            #type,time,big-small,ua,ub
+            info=line.strip().split(",")
+            if info[3] in user:fw.write(line)
+            if random.random()*1000000<1:print("[%s] working..."%(gettime()))
+        fw.close()
+        solvecnt=solvecnt+1
+        outputinfo("removeUncitizen(%s)"%(f),solvecnt,totalcnt,time.time()-starttime)
 if __name__=="__main__":
-    removeTime("userold","user")
+    mons=sys.argv[1:]
+    for month in mons:
+        removeUncitizen("home/userhome"+month+".txt","DataCom/com"+month,"DataCom/citizen"+month)

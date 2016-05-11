@@ -1,4 +1,5 @@
 import time
+import sys
 import random
 import os
 import psutil
@@ -35,7 +36,6 @@ def loadCom(inputpath,idx):
         usercom[info[0]][idx]=info[1]
 def getNMI(ida,idb,idr):
     global usercom,result
-    fw=open(outputpath,"w")
     solvecnt=0
     totalcnt=len(usercom)
     starttime=time.time()
@@ -46,14 +46,8 @@ def getNMI(ida,idb,idr):
             pa=dict()
             pb=dict()
             pab=dict()
-            ct=0
-        if last==item[1][0]:
-            pa[item[1][a]]=1 if item[1][a] not in pa else pa[item[1][a]]+1
-            pb[item[1][b]]=1 if item[1][b] not in pb else pb[item[1][b]]+1
-            xy="%d,%d"%(item[1][a],item[1][b])
-            pab[xy]=1 if xy not in pab else pab[xy]+1
-            ct=ct+1.0
-        else:
+            ct=0.0
+        if last!=item[1][0]:
             ha=0.0
             hb=0.0
             mi=0.0
@@ -70,9 +64,15 @@ def getNMI(ida,idb,idr):
             pa.clear()
             pb.clear()
             pab.clear()
-            ct=0
+            ct=0.0
+        pa[item[1][ida]]=1.0 if item[1][ida] not in pa else pa[item[1][ida]]+1.0
+        pb[item[1][idb]]=1.0 if item[1][idb] not in pb else pb[item[1][idb]]+1.0
+        xy="%d,%d"%(item[1][ida],item[1][idb])
+        pab[xy]=1.0 if xy not in pab else pab[xy]+1.0
+        ct=ct+1.0
         solvecnt=solvecnt+1
-        outputinfo("getNMI(%d,%d,%d)"%(ida,idb,idr),solvecnt,totalcnt,time.time()-starttime)
+        if random.random()*10000<1:
+            outputinfo("getNMI(%d,%d,%d)"%(ida,idb,idr),solvecnt,totalcnt,time.time()-starttime)
     ha=0.0
     hb=0.0
     mi=0.0
@@ -85,6 +85,34 @@ def getNMI(ida,idb,idr):
         nmi=2*mi/(ha+hb)
         if last not in result:result[last]=[0,0,0]
         result[last][idr]=nmi
+def getEntropy(idx,idr):
+    global usercom,result
+    solvecnt=0
+    totalcnt=len(usercom)
+    starttime=time.time()
+    last=None
+    for item in sorted(usercom.items(),key=lambda arg:arg[1][0]):
+        if last==None:
+            last=item[1][0]
+            p=dict()
+            ct=0.0
+        if last!=item[1][0]:
+            e=0.0
+            for x in p:e-=p[x]/ct*math.log(p[x]/ct)
+            if last not in result:result[last]=[0,0,0]
+            result[last][idr]=e
+            last=item[1][0]
+            p.clear()
+            ct=0.0
+        p[item[1][idx]]=1.0 if item[1][idx] not in p else p[item[1][idx]]+1.0
+        ct=ct+1.0
+        solvecnt=solvecnt+1
+        if random.random()*10000<1:
+            outputinfo("getEntropy(%d,%d)"%(idx,idr),solvecnt,totalcnt,time.time()-starttime)
+    e=0.0
+    for x in p:e-=p[x]/ct*math.log(p[x]/ct)
+    if last not in result:result[last]=[0,0,0]
+    result[last][idr]=e
 def getCommunityNumber(outputpath):
     global usercom
     comcnt=dict()
@@ -93,23 +121,23 @@ def getCommunityNumber(outputpath):
         if last==None:
             last=item[1][0]
             ct=[set(),set()]
-        if last==item[1][0]:
-            ct[0].add(item[1][1])
-            ct[1].add(item[1][2])
-        else:
+        if last!=item[1][0]:
             comcnt[last]=[len(ct[0]),len(ct[1])]
             last=item[1][0]
             ct[0].clear()
             ct[1].clear()
+        ct[0].add(item[1][1])
+        ct[1].add(item[1][2])
     fw=open(outputpath,"w")
     for x in sorted(comcnt.items(),key=lambda arg:arg[0]):
         fw.write("%d,%d,%d\n"%(x[0],x[1][0],x[1][1]))
     fw.close()
-def outputNMI(outputpath):
+def outputMetrics(outputpath):
     global result
     fw=open(outputpath,"w")
     for x in sorted(result.items(),key=lambda arg:arg[0]):
         fw.write("%d,%.6f,%.6f,%.6f\n"%(x[0],x[1][0],x[1][1],x[1][2]))
+        #fw.write("%d,%.6f\n"%(x[0],x[1][0]))
     fw.close()
 if __name__=="__main__":
     global usercom,result
@@ -122,10 +150,10 @@ if __name__=="__main__":
         loadCom("home/userhome"+month+".txt",0)
         loadCom("communitySingle/nodeCall"+month+".txt",1)
         loadCom("communitySingle/nodeMess"+month+".txt",2)
-        #call-mess,call-plane,mess-plane
+        #call-mess
         getNMI(1,2,0)
-        getNMI(1,0,1)
-        getNMI(2,0,2)
-        outputNMI("plane/nmi"+month+".txt")
-        getCommunityNumber("plane/comcnt"+month+".txt")
+        getEntropy(1,1)
+        getEntropy(2,2)
+        outputMetrics("plane/communityMetrics"+month+".txt")
+        #getCommunityNumber("plane/comcnt"+month+".txt")
 

@@ -57,34 +57,30 @@ def loadBasicInfo(monthpath):
         #call_out    call_in    last_call_out    last_call_in   total_call_out_time  total_call_in_time total_time
         #message...
         user[info[0]]=[info[1],0,0,None,None,0,0,0,0,0,None,None,0,0,0]
-def solveOneRecord(record):
+def solveOneRecord(info):
     global user
     #type,time,big-small,ua,ub
-    info=record.strip().split(",")
-    if info[3] not in user:return
     ntime=info[1]
     data=user[info[3]]
     if info[0] in ["1","3"]:ad=1
     elif info[0] in ["6","7"]:ad=8
     else:return
+    ltime=latestTime(data[ad+2],data[ad+3])
+    if ltime!=None:
+        tottime=timediff(ltime,ntime)
+        data[ad+6]=data[ad+6]+tottime
     if info[0] in ["1","6"]:
         data[ad]=data[ad]+1
         prevtime=data[ad+2]
         if prevtime!=None:
-            d=timediff(prevtime,ntime)
-            data[ad+4]=data[ad+4]+d
+            data[ad+4]=data[ad+4]+timediff(prevtime,ntime)
         data[ad+2]=ntime
     elif info[0] in ["3","7"]:
         data[ad+1]=data[ad+1]+1
         prevtime=data[ad+3]
         if prevtime!=None:
-            d=timediff(prevtime,ntime)
-            data[ad+5]=data[ad+5]+d
+            data[ad+5]=data[ad+5]+timediff(prevtime,ntime)
         data[ad+3]=ntime
-    ltime=latestTime(data[ad+2],data[ad+3])
-    if ltime!=None:
-        tottime=timediff(ltime,ntime)
-        data[ad+6]=data[ad+6]+tottime
 def userBehaviorGet(monthdir,userpath):
     global user
     files=os.listdir(monthdir)
@@ -93,7 +89,8 @@ def userBehaviorGet(monthdir,userpath):
     starttime=time.time()
     for F in files:
         for line in open(monthdir+"/"+F,"r"):
-            solveOneRecord(line)
+            info=line.strip().split(",")
+            solveOneRecord(info)
             if random.random()*1000000<1:
                 print("[%s] solving file %s\n"%(gettime(),F))
         solvecnt=solvecnt+1
@@ -112,50 +109,44 @@ def makePlaneStr(x):
         return str(x[0])+",0,0,0,0,0,0,0,0,0,0,0"
     ans="%d,%d,%.2f,%.2f"%(x[0],x[1][0],x[1][1]*1.0/x[1][0],x[1][2]*1.0/x[1][0])
     for i in range(3,6):
-        if x[1][i][1]==0:
+        if x[1][i][1]>0:
             ans=ans+",%.2f"%(x[1][i][0]/x[1][i][1])
         else:
             ans=ans+",0"
     ans=ans+",%.2f,%.2f"%(x[1][6]*1.0/x[1][0],x[1][7]*1.0/x[1][0])
     for i in range(8,11):
-        if x[1][i][1]==0:
+        if x[1][i][1]>0:
             ans=ans+",%.2f"%(x[1][i][0]/x[1][i][1])
         else:
             ans=ans+",0"
     return ans
-def planeBehaviorGet(userdir,planedir):
-    files=os.listdir(userdir)
-    for f in files:
-        month=f[f.index("2"):f.index(".")]
-        plane=dict()
-        for line in open(userdir+"/"+f,"r"):
-            u=[int(t) for t in line.strip().split(",")]
-            pid=u[1]
-            if pid not in plane:plane[pid]=[0,0,0,[0,0],[0,0],[0,0],0,0,[0,0],[0,0],[0,0]]
-            plane[pid][0]+=1
-            plane[pid][1]+=u[2]
-            plane[pid][2]+=u[3]
-            plane[pid][3]=updateAveInter(plane[pid][3],u[4],u[2])
-            plane[pid][4]=updateAveInter(plane[pid][4],u[5],u[3])
-            plane[pid][5]=updateAveInter(plane[pid][5],u[6],u[2]+u[3])
-            plane[pid][6]+=u[7]
-            plane[pid][7]+=u[8]
-            plane[pid][8]=updateAveInter(plane[pid][8],u[9],u[7])
-            plane[pid][9]=updateAveInter(plane[pid][9],u[10],u[8])
-            plane[pid][10]=updateAveInter(plane[pid][10],u[11],u[7]+u[8])
-        fw=open(planedir+"/communicationCount"+month+".txt","w")
-        fw.write("PID,Population,CallOutCnt,CallInCnt,CallOutInter,CallInInter,CallInter,MessOutCnt,MessInCnt,MessOutInter,MessInInter,MessInter\n")
-        for x in sorted(plane.items(),key=lambda arg:arg[0]):
-            fw.write("%s\n"%(makePlaneStr(x))
-        fw.close()
+def planeBehaviorGet(userpath,planepath):
+    plane=dict()
+    for line in open(userpath,"r"):
+        u=[int(float(t)) for t in line.strip().split(",")]
+        pid=u[1]
+        if pid not in plane:plane[pid]=[0,0,0,[0,0],[0,0],[0,0],0,0,[0,0],[0,0],[0,0]]
+        plane[pid][0]+=1
+        plane[pid][1]+=u[2]
+        plane[pid][2]+=u[3]
+        plane[pid][3]=updateAveInter(plane[pid][3],u[4],u[2])
+        plane[pid][4]=updateAveInter(plane[pid][4],u[5],u[3])
+        plane[pid][5]=updateAveInter(plane[pid][5],u[6],u[2]+u[3])
+        plane[pid][6]+=u[7]
+        plane[pid][7]+=u[8]
+        plane[pid][8]=updateAveInter(plane[pid][8],u[9],u[7])
+        plane[pid][9]=updateAveInter(plane[pid][9],u[10],u[8])
+        plane[pid][10]=updateAveInter(plane[pid][10],u[11],u[7]+u[8])
+    fw=open(planepath,"w")
+    fw.write("PID,Population,CallOutCnt,CallInCnt,CallOutInter,CallInInter,CallInter,MessOutCnt,MessInCnt,MessOutInter,MessInInter,MessInter\n")
+    for x in sorted(plane.items(),key=lambda arg:arg[0]):
+        fw.write("%s\n"%(makePlaneStr(x)))
+    fw.close()
 if __name__=="__main__":
     global user
     user=dict()
     month=sys.argv[1:]
-    solvecnt=0
-    totalcnt=len(month)
-    starttime=time.time()
     for m in month:
         loadBasicInfo("home/userhome"+m+".txt")
         userBehaviorGet("DataCom/com"+m,"user/behavior"+m+".txt")
-    planeBehaviorGet("user","plane")
+        planeBehaviorGet("user/behavior"+m+".txt","plane/communicationInter"+m+".txt")
