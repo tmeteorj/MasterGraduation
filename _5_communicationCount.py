@@ -89,16 +89,16 @@ def communicationGet(monthdir):
     global user
     files=os.listdir(monthdir)
     solvecnt=0
-    totalcnt=countlinedir(monthdir)
+    totalcnt=len(files)
     starttime=time.time()
     for F in files:
         #20150901.txt
-        solvecnt=solvecnt+1
         for line in open(monthdir+"/"+F,"r"):
             solveOneRecord(line)
-            solvecnt=solvecnt+1
-            if solvecnt%100000==0:
-                outputinfo("communicationGet[%s]"%(monthdir+"/"+F),solvecnt,totalcnt,time.time()-starttime)
+            if random.random()*1000000<1:
+                print("[%s] solving file %s\n"%(gettime(),F))
+        solvecnt=solvecnt+1
+        outputinfo("communicationGet[%s]"%(monthdir+"/"+F),solvecnt,totalcnt,time.time()-starttime)
 def outputPlaneAttr(outputpath,userpath):
     global user
     plane=dict()
@@ -106,7 +106,7 @@ def outputPlaneAttr(outputpath,userpath):
     for u in user:
         fw.write(str(u))
         for x in user[u]:
-            fw.write(","+x)
+            fw.write(","+str(x))
         fw.write("\n")
         data=user[u]
         pid=data[0]

@@ -13,6 +13,7 @@ def outputinfo(info,solvecnt,totalcnt,costtime):
 def timeEvaluation(solvecnt,totalcnt,costtime):
     if solvecnt>=totalcnt:
         return 0,0,0
+    if solvecnt==0:solvecnt=1
     avetime=costtime*1.0/solvecnt
     remaintime=avetime*(totalcnt-solvecnt)
     hour=remaintime//3600
@@ -40,7 +41,8 @@ def iteration():
     global nodelabel,perm,edge
     for now in perm:
         labs=dict()
-        maxv=-1
+        labs[random.choice(nodelabel[now])]=0
+        maxv=0
         for to in edge[now]:
             label=random.choice(nodelabel[to])
             weight=getWeight(now,to)
@@ -62,6 +64,7 @@ def initSLPA(filePath,widx):
         info=line.strip().split("\t")
         us=[int(t) for t in info[0].strip().split(",")]
         cs=[int(t) for t in info[1].strip().split(",")]
+        if cs[widx]==0:continue
         for u in us[1:]:
             if u not in degree:
                 degree[u]=0
@@ -99,7 +102,7 @@ def SLPA(filePath,itertimes,thrs,outputpath,widx):
     for it in range(itertimes):
         random.shuffle(perm)
         iteration()
-        outputinfo("SLPA[%s]"%(filePath),it,itertimes,time.time()-starttime)
+        outputinfo("SLPA[%s]"%(filePath),it+1,itertimes,time.time()-starttime)
         if psutil.virtual_memory().percent>98:
             print("out of memory!!!!!!!!!!!!")
             sys.exit()
@@ -124,7 +127,7 @@ def chooseOneFile(inputpath,outputpath,homepath):
     for line in open(inputpath,"r"):
         info=[int(t) for t in line.strip().split(",")]
         li=list()
-        for x in inf[1:]:
+        for x in info[1:]:
             if x not in com:
                 cnt=cnt+1
                 com[x]=cnt
@@ -139,18 +142,18 @@ def chooseOneFile(inputpath,outputpath,homepath):
     for x in sorted(ucom.items(),key=lambda arg:arg[0]):
         fw.write("%d,%d\n"%(x[0],x[1]))
     fw.close()
-def chooseOneDir(inputdir,outputdir):
+def chooseOneDir(inputdir,outputdir,homedir):
     files=os.listdir(inputdir)
     solvecnt=0
     totalcnt=len(files)
     starttime=time.time()
     for f in files:
-        chooseOneFile(inputdir+"/"+f,outputdir+"/"+f)
+        chooseOneFile(inputdir+"/"+f,outputdir+"/"+f,homedir+"/userhome"+f[f.index("2"):f.index(".")]+".txt")
         solvecnt=solvecnt+1
         outputinfo("chooseOneFile[%s]"%(f),solvecnt,totalcnt,time.time()-starttime)
 if __name__=="__main__":
-    months=sys.argv[1:] 
+#    months=sys.argv[1:] 
 #    for month in months:
 #        SLPA("network/net"+month+".txt",100,100,"community/nodeCall"+month+".txt",0)
 #        SLPA("network/net"+month+".txt",100,100,"community/nodeMess"+month+".txt",1)
-    chooseOneDir("community","communitySingle")
+    chooseOneDir("community","communitySingle","home")
