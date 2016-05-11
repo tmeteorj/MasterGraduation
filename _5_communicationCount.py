@@ -85,53 +85,69 @@ def solveOneRecord(record):
     if ltime!=None:
         tottime=timediff(ltime,ntime)
         data[ad+6]=data[ad+6]+tottime
-def communicationGet(monthdir):
+def userBehaviorGet(monthdir,userpath):
     global user
     files=os.listdir(monthdir)
     solvecnt=0
     totalcnt=len(files)
     starttime=time.time()
     for F in files:
-        #20150901.txt
         for line in open(monthdir+"/"+F,"r"):
             solveOneRecord(line)
             if random.random()*1000000<1:
                 print("[%s] solving file %s\n"%(gettime(),F))
         solvecnt=solvecnt+1
         outputinfo("communicationGet[%s]"%(monthdir+"/"+F),solvecnt,totalcnt,time.time()-starttime)
-def outputPlaneAttr(outputpath,userpath):
-    global user
-    plane=dict()
     fw=open(userpath,"w")
     for u in user:
-        fw.write(str(u))
-        for x in user[u]:
-            fw.write(","+str(x))
-        fw.write("\n")
-        data=user[u]
-        pid=data[0]
-        #population  call_out  call_in  call_out_time  call_in_time  call_time  message_out  message_in message_out_time  message_in_time  message_time
-        if pid not in plane:plane[pid]=[0,0,0,0,0,0,0,0,0,0,0]
-        plane[pid][0]=plane[pid][0]+1
-        plane[pid][1]=plane[pid][1]+data[1]
-        plane[pid][2]=plane[pid][2]+data[2]
-        plane[pid][3]=plane[pid][3]+data[5]
-        plane[pid][4]=plane[pid][4]+data[6]
-        plane[pid][5]=plane[pid][5]+data[7]
-        plane[pid][6]=plane[pid][6]+data[8]
-        plane[pid][7]=plane[pid][7]+data[9]
-        plane[pid][8]=plane[pid][8]+data[12]
-        plane[pid][9]=plane[pid][9]+data[13]
-        plane[pid][10]=plane[pid][10]+data[14]
+        fw.write("%s,%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n"%(str(u),user[u][0],user[u][1],user[u][2],user[u][5],user[u][6],user[u][7],user[u][8],user[u][9],user[u][12],user[u][13],user[u][14]))
     fw.close()
-    fw=open(outputpath,"w")
-    fw.write("planeID,population,callOut,callIn,callOutTime,callInTime,callTime,messOut,messIn,messOutTime,messInTime,messTime\n")
-    for pid in plane:
-        fw.write(str(pid))
-        for x in plane[pid]:
-            fw.write(","+str(x))
-        fw.write("\n")
-    fw.close()
+def updateAveInter(arr,tot,cnt):
+    if cnt>1:
+        arr[0]+=float(tot)/(cnt-1.0)
+        arr[1]+=1
+    return arr
+def makePlaneStr(x):
+    if x[1][0]==0:
+        return str(x[0])+",0,0,0,0,0,0,0,0,0,0,0"
+    ans="%d,%d,%.2f,%.2f"%(x[0],x[1][0],x[1][1]*1.0/x[1][0],x[1][2]*1.0/x[1][0])
+    for i in range(3,6):
+        if x[1][i][1]==0:
+            ans=ans+",%.2f"%(x[1][i][0]/x[1][i][1])
+        else:
+            ans=ans+",0"
+    ans=ans+",%.2f,%.2f"%(x[1][6]*1.0/x[1][0],x[1][7]*1.0/x[1][0])
+    for i in range(8,11):
+        if x[1][i][1]==0:
+            ans=ans+",%.2f"%(x[1][i][0]/x[1][i][1])
+        else:
+            ans=ans+",0"
+    return ans
+def planeBehaviorGet(userdir,planedir):
+    files=os.listdir(userdir)
+    for f in files:
+        month=f[f.index("2"):f.index(".")]
+        plane=dict()
+        for line in open(userdir+"/"+f,"r"):
+            u=[int(t) for t in line.strip().split(",")]
+            pid=u[1]
+            if pid not in plane:plane[pid]=[0,0,0,[0,0],[0,0],[0,0],0,0,[0,0],[0,0],[0,0]]
+            plane[pid][0]+=1
+            plane[pid][1]+=u[2]
+            plane[pid][2]+=u[3]
+            plane[pid][3]=updateAveInter(plane[pid][3],u[4],u[2])
+            plane[pid][4]=updateAveInter(plane[pid][4],u[5],u[3])
+            plane[pid][5]=updateAveInter(plane[pid][5],u[6],u[2]+u[3])
+            plane[pid][6]+=u[7]
+            plane[pid][7]+=u[8]
+            plane[pid][8]=updateAveInter(plane[pid][8],u[9],u[7])
+            plane[pid][9]=updateAveInter(plane[pid][9],u[10],u[8])
+            plane[pid][10]=updateAveInter(plane[pid][10],u[11],u[7]+u[8])
+        fw=open(planedir+"/communicationCount"+month+".txt","w")
+        fw.write("PID,Population,CallOutCnt,CallInCnt,CallOutInter,CallInInter,CallInter,MessOutCnt,MessInCnt,MessOutInter,MessInInter,MessInter\n")
+        for x in sorted(plane.items(),key=lambda arg:arg[0]):
+            fw.write("%s\n"%(makePlaneStr(x))
+        fw.close()
 if __name__=="__main__":
     global user
     user=dict()
@@ -141,7 +157,5 @@ if __name__=="__main__":
     starttime=time.time()
     for m in month:
         loadBasicInfo("home/userhome"+m+".txt")
-        communicationGet("DataCom/com"+m)
-        outputinfo("outputPlaneAttr[%s]"%(m),1,1,0)
-        outputPlaneAttr("plane/communicationCount"+m+".txt","user/behavior"+m+".txt")
-        outputinfo("outputPlaneAttr[%s]"%(m),1,1,0)
+        userBehaviorGet("DataCom/com"+m,"user/behavior"+m+".txt")
+    planeBehaviorGet("user","plane")
