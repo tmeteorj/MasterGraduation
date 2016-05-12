@@ -30,15 +30,12 @@ def normalFile(inputpath,outputpath,size):
     minp=dict()
     maxp=dict()
     leng=dict()
-    for i in range(2,size):
-        minp[i]=None
-        maxp[i]=None
     for line in islice(open(inputpath,"r"),1,None):
         info=line.strip().split(",")
-        for i in range(2,size):
-            if minp[i]==None or minp[i]>float(info[i]):minp[i]=float(info[i])
-            if maxp[i]==None or maxp[i]<float(info[i]):maxp[i]=float(info[i])
-    for i in range(2,size):
+        for i in range(1,size):
+            if i not in minp or minp[i]>float(info[i]):minp[i]=float(info[i])
+            if i not in maxp or maxp[i]<float(info[i]):maxp[i]=float(info[i])
+    for i in range(1,size):
         leng[i]=maxp[i]-minp[i]
     fw=open(outputpath,"w")
     first=True
@@ -48,7 +45,7 @@ def normalFile(inputpath,outputpath,size):
             fw.write(line)
             continue
         info=line.strip().split(",")
-        for i in range(2,size):
+        for i in range(1,size):
             if leng[i]==0:info[i]="0.5"
             else:
                 info[i]=str((float(info[i])-minp[i])/leng[i])
@@ -63,4 +60,6 @@ if __name__=="__main__":
     solvecnt=0
     starttime=time.time()
     for mon in montharr: 
-        normalFile("plane"+mon+".txt","normalplane"+mon+".txt",10)
+        normalFile("plane/planeAll"+mon+".txt","plane/planeAllNormal"+mon+".txt",19)
+        solvecnt+=1
+        outputinfo("Normalize[%s]"%(mon),solvecnt,totalcnt,time.time()-starttime)
