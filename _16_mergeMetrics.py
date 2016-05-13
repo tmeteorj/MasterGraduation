@@ -54,6 +54,8 @@ def loadPlaneMetricsMonth(planedir,month):
     loadPlaneMetricsFile(planedir+"/comcnt"+month+".txt",13,False,plane)
     loadPlaneMetricsFile(planedir+"/communityMetrics"+month+".txt",15,False,plane)
     fw=open(planedir+"/planeAll"+month+".txt","w")
+    fw.write("PID,Population,CallOutCnt,CallInCnt,CallOutTime,CallInTime,CallTime,MessOutCnt,MessInCnt,MessOutTime,MessInTime,MessTime,")
+    fw.write("CallDegree,MessDegree,CallComCnt,MessComCnt,CallMessNMI,CallEntropy,MessEntropy\n")
     for x in sorted(plane.items(),key=lambda arg:int(arg[0])):
         fw.write(x[0])
         for i in x[1]:

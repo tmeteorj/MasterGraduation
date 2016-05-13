@@ -29,7 +29,8 @@ def countline(filePath):
     f.close()
     return count
 def isNum(val):
-    return re.compile(r"^\d+(.\d+)?$").match(val)!=None
+    return True
+  #  return re.compile(r"^\d+(.\d+)?$").match(val)!=None
 def distance(a,b):
     global distmethod
     if distmethod=="euc":
@@ -90,25 +91,47 @@ def loadClusterFile(preffix,inputpath):
             first=False
             continue
         info=line.strip().split(",")
-        name=preffix+"-"+info[0]
+        key=preffix+"-"+info[0]
         cluster[key]=dict()
         cluster[key][key]=info[1:]
 def loadClusterAll(months,planedir):
-    global cluster,dist
+    global cluster
     cluster=dict()
-    dist=dict()
     for month in months:
         loadClusterFile(month,planedir+"/planeAllNormal"+month+".txt")
-    for a in cluster:
-        for b in cluster:
-            if a==b:ds=0
-            else:ds=distance(cluster[a][a],cluster[b][b])
-            if a not in dist:dist[a]=dict()
-            if b not in dist:dist[b]=dict()
-            dist[a][b]=ds
-            dist[b][a]=ds
-def iteration(minds):
+def computeDistAll(planedir,months,outputdir):
+    global distmethod
+    sam=dict()
+    for month in months:
+        for line in open(planedir+"/planeAllNormal"+month+".txt","r"):
+            info=line.strip().split(",")
+            sam[month+"-"+info[0]]=info[1:]
+    solvecnt=0
+    totalcnt=len(sam)*3
+    starttime=time.time()
+    for meth in ["euc","cos","man"]:
+        distmethod=meth
+        fw=open(outputdir+"/dist_"+meth+".txt","w")
+        for a in sam:
+            for b in sam:
+                if a>b:continue
+                fw.write("%s,%s,%f\n"%(a,b,distance(sam[a],sam[b])))
+            solvecnt+=1
+            if random.random()*100<1:
+                outputinfo("computeDistAll[%s]"%(meth),solvecnt,totalcnt,time.time()-starttime)
+        fw.close()
+def loadDistFile(inputpath):
+    global dist
+    dist=dict()
+    for line in open(inputpath,"r"):
+        info=line.strip().split(",")
+        for i in range(2):
+            if info[i] not in dist:dist[info[i]]=dict()
+        dist[info[0]][info[1]]=float(info[2])
+        dist[info[1]][info[0]]=float(info[2])
+def iteration(D,logs):
     global cluster,dist
+    minds=D
     mina=-1
     minb=-1
     for a in cluster:
@@ -119,18 +142,21 @@ def iteration(minds):
                 minds=ds
                 mina=a
                 minb=b
-    if mina==-1:return False
-    merge(mina,minb)
-    return True
-def planeCluster(K,D,outputpath):
+    if mina!=-1:
+        merge(mina,minb)
+        logs.write("%s,%s,%f\n"%(mina,minb,minds))
+    return minds
+def planeCluster(K,D,outputpath,logpath):
     global cluster
+    logs=open(logpath,"w")
     tot=len(cluster)
     totalcnt=tot-K
     startime=time.time()
     for i in range(totalcnt):
-        flag=iteration(D)
-        outputinfo("planeCluster[%d,%.4f]"%(K,D),i+1,totalcnt,time.time()-starttime)
-        if not flag:break
+        minds=iteration(D,logs)
+        outputinfo("planeCluster[%d,%.4f,%.4f]"%(K,D,minds),i+1,totalcnt,time.time()-starttime)
+        if minds>=D:break
+    logs.close()
     index=0
     fw=open(outputpath,"w")
     for c in cluster:
@@ -141,11 +167,11 @@ def planeCluster(K,D,outputpath):
             fw.write("\n")
     fw.close()
 if __name__=="__main__":
-    global clumethod,distmethod
-    clumethod=sys.argv[1]
-    distmethod=sys.argv[2]
-    K=int(sys.argv[3])
-    D=float(sys.argv[4])
-    months=sys.argv[5:]
-    loadClusterAll(months,"plane")
-    planeCluster(K,D,"cluster/clu_%d_%.4f.txt"%(K,D))
+    months=["201412","201501","201502","201503","201504","201505","201506","201507","201508","201509","201510","201511"]
+    computeDistAll("plane",months,"cluster")
+    K=int(sys.argv[1])
+    D=float(sys.argv[2])
+    for meth in ["euc","cos","man"]:
+        loadClusterAll(months,"plane")
+        loadDistFile("cluster/dist_"+meth+".txt")
+        planeCluster(K,D,"cluster/clu_%d_%.4f.txt"%(K,D))

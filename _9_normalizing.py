@@ -30,7 +30,7 @@ def normalFile(inputpath,outputpath,size):
     minp=dict()
     maxp=dict()
     leng=dict()
-    for line in islice(open(inputpath,"r"),1,None):
+    for line in open(inputpath,"r"):
         info=line.strip().split(",")
         for i in range(1,size):
             if i not in minp or minp[i]>float(info[i]):minp[i]=float(info[i])
@@ -38,12 +38,7 @@ def normalFile(inputpath,outputpath,size):
     for i in range(1,size):
         leng[i]=maxp[i]-minp[i]
     fw=open(outputpath,"w")
-    first=True
     for line in open(inputpath,"r"):
-        if first:
-            first=False
-            fw.write(line)
-            continue
         info=line.strip().split(",")
         for i in range(1,size):
             if leng[i]==0:info[i]="0.5"
