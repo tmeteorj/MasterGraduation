@@ -25,7 +25,7 @@ def countline(filePath):
     sizeF=os.path.getsize(filePath)/1024/1024/1024
     buff=f.read(1024*1024*1024)
     count=buff.count("\n")
-    if(sizeF>1):count=int(count*sizeF)
+    if(sizeF>1):count=int((count+1)*(sizeF+1))
     f.close()
     return count
 def isNum(val):
@@ -123,15 +123,22 @@ def computeDistAll(planedir,months,outputdir):
 def loadDistFile(inputpath):
     global dist
     dist=dict()
+    solvecnt=0
+    totalcnt=countline(inputpath)
+    rate=totalcnt/10000
+    starttime=time.time()
+    lasttime=time.time()
     for line in open(inputpath,"r"):
         info=line.strip().split(",")
-        for i in range(2):
-            if info[i] not in dist:dist[info[i]]=dict()
+        if info[0] not in dist:dist[info[0]]=dict()
         dist[info[0]][info[1]]=float(info[2])
-        dist[info[1]][info[0]]=float(info[2])
-def iteration(D,logs):
+        solvecnt+=1
+        if random.random()*rate<1 and time.time()-lasttime>=10:
+            outputinfo("loadDistFile(%s)"%(inputpath),solvecnt,totalcnt,time.time()-starttime)
+            lasttime=time.time()
+def iteration(logs):
     global cluster,dist
-    minds=D
+    minds=1000.0
     mina=-1
     minb=-1
     for a in cluster:
@@ -145,33 +152,48 @@ def iteration(D,logs):
     if mina!=-1:
         merge(mina,minb)
         logs.write("%s,%s,%f\n"%(mina,minb,minds))
+    else:
+        print("merge error")
+        logs.close()
+        sys.exit(-1)
     return minds
-def planeCluster(K,D,outputpath,logpath):
+def planeCluster(mergepath):
     global cluster
-    logs=open(logpath,"w")
+    logs=open(mergepath,"w")
     tot=len(cluster)
-    totalcnt=tot-K
+    totalcnt=tot-1
     startime=time.time()
     for i in range(totalcnt):
-        minds=iteration(D,logs)
-        outputinfo("planeCluster[%d,%.4f,%.4f]"%(K,D,minds),i+1,totalcnt,time.time()-starttime)
-        if minds>=D:break
+        minds=iteration(logs)
+        outputinfo("planeCluster[%s,%.4f]"%(mergepath,minds),i+1,totalcnt,time.time()-starttime)
     logs.close()
-    index=0
+def sortDist(inputdir,outputpath):
+    ds=list()
+    solvecnt=0
+    totalcnt=countline("cluster/dist_cos.txt")+countline("cluster/dist_euc.txt")+countline("cluster/dist_man.txt")
+    starttime=time.time()
+    for f in os.listdir(inputdir):
+        for line in open(inputdir+"/"+f,"r"):
+            if random.random()*100<1:
+                info=line.strip().split(",")
+                ds.append(float(info[2]))
+            solvecnt+=1
+            if random.random()*1000000<1:
+                outputinfo("sortDist[%s]"%(f),solvecnt,totalcnt,time.time()-starttime)
+    ds.sort()
+    rat=solvecnt//10000
+    sol=0
     fw=open(outputpath,"w")
-    for c in cluster:
-        index+=1
-        for x in cluster[c]:
-            fw.write("%d,%s"%(index,x))
-            for a in cluster[c][x]:fw.write(","+a)
-            fw.write("\n")
+    for item in ds:
+        if sol%rat==0:fw.write("%f\n"%(item))
+        sol=sol+1
     fw.close()
 if __name__=="__main__":
+    global clumethod
     months=["201412","201501","201502","201503","201504","201505","201506","201507","201508","201509","201510","201511"]
-    computeDistAll("plane",months,"cluster")
-    K=int(sys.argv[1])
-    D=float(sys.argv[2])
-    for meth in ["euc","cos","man"]:
-        loadClusterAll(months,"plane")
-        loadDistFile("cluster/dist_"+meth+".txt")
-        planeCluster(K,D,"cluster/clu_%d_%.4f.txt"%(K,D))
+    for cmeth in ["longest","nearest"]:
+        clumethod=cmeth
+        for dmeth in ["euc","cos","man"]:
+            loadDistFile("cluster/dist_"+dmeth+".txt")
+            loadClusterAll(months,"plane")
+            planeCluster("cluster/%s_%s.txt"%(cmeth,dmeth))
