@@ -172,14 +172,16 @@ def sortDist(inputdir,outputpath):
     solvecnt=0
     totalcnt=countline("cluster/dist_cos.txt")+countline("cluster/dist_euc.txt")+countline("cluster/dist_man.txt")
     starttime=time.time()
+    lasttime=time.time()
     for f in os.listdir(inputdir):
         for line in open(inputdir+"/"+f,"r"):
             if random.random()*100<1:
                 info=line.strip().split(",")
                 ds.append(float(info[2]))
             solvecnt+=1
-            if random.random()*1000000<1:
-                outputinfo("sortDist[%s]"%(f),solvecnt,totalcnt,time.time()-starttime)
+            if time.time()-lasttime>=10:
+                lasttime=time.time()
+                outputinfo("sortDist[%s]"%(f),solvecnt,totalcnt,lasttime-starttime)
     ds.sort()
     rat=solvecnt//10000
     sol=0
