@@ -68,10 +68,14 @@ def distance(a,b):
                 ds+=1.0
         return ds
 def merge(a,b):
-    global clumethod,dist,cluster
+    global clumethod,dist,removed
     if clumethod=="longest":
-        for c in cluster:
+        for c in dist:
             if c!=a and c!=b:
+                if c<a:
+                    if dist[c][a]<dist[c][b]:
+                        dist[c][a]=dist[c][b]
+                        removed.add()
                 dist[a][c]=max(dist[a][c],dist[b][c])
                 dist[c][a]=dist[a][c]
     elif clumethod=="nearest":
@@ -83,22 +87,6 @@ def merge(a,b):
         cluster[a][x]=cluster[b][x]
     cluster.pop(b)
     dist.pop(b)
-def loadClusterFile(preffix,inputpath):
-    global cluster
-    fisrt=True
-    for line in open(inputpath,"r"):
-        if first:
-            first=False
-            continue
-        info=line.strip().split(",")
-        key=preffix+"-"+info[0]
-        cluster[key]=dict()
-        cluster[key][key]=info[1:]
-def loadClusterAll(months,planedir):
-    global cluster
-    cluster=dict()
-    for month in months:
-        loadClusterFile(month,planedir+"/planeAllNormal"+month+".txt")
 def computeDistAll(planedir,months,outputdir):
     global distmethod
     sam=dict()
@@ -121,7 +109,8 @@ def computeDistAll(planedir,months,outputdir):
                 outputinfo("computeDistAll[%s]"%(meth),solvecnt,totalcnt,time.time()-starttime)
         fw.close()
 def loadDistFile(inputpath):
-    global dist
+    global dist,pmap
+    init_heap()
     dist=dict()
     solvecnt=0
     totalcnt=countline(inputpath)
@@ -130,19 +119,23 @@ def loadDistFile(inputpath):
     lasttime=time.time()
     for line in open(inputpath,"r"):
         info=line.strip().split(",")
-        if info[0] not in dist:dist[info[0]]=dict()
-        dist[info[0]][info[1]]=float(info[2])
+        ua=pmap[info[0]]
+        ub=pmap[info[1]]
+        if ua>ub:ua,ub=swap(ua,ub)
+        if ua not in dist:dist[ua]=dict()
+        dist[ua][ub]=float(info[2])
+        push([float(info[2]),ua,ub])
         solvecnt+=1
-        if random.random()*rate<1 and time.time()-lasttime>=10:
-            outputinfo("loadDistFile(%s)"%(inputpath),solvecnt,totalcnt,time.time()-starttime)
+        if time.time()-lasttime>=10:
             lasttime=time.time()
+            outputinfo("loadDistFile(%s)"%(inputpath),solvecnt,totalcnt,lasttime-starttime)
 def iteration(logs):
-    global cluster,dist
+    global dist
     minds=1000.0
     mina=-1
     minb=-1
-    for a in cluster:
-        for b in cluster:
+    for a in dist:
+        for b in dist:
             if b<=a:continue
             ds=dist[a][b]
             if ds<minds:
@@ -158,9 +151,9 @@ def iteration(logs):
         sys.exit(-1)
     return minds
 def planeCluster(mergepath):
-    global cluster
+    global dist
     logs=open(mergepath,"w")
-    tot=len(cluster)
+    tot=len(dist)
     totalcnt=tot-1
     startime=time.time()
     for i in range(totalcnt):
@@ -172,16 +165,14 @@ def sortDist(inputdir,outputpath):
     solvecnt=0
     totalcnt=countline("cluster/dist_cos.txt")+countline("cluster/dist_euc.txt")+countline("cluster/dist_man.txt")
     starttime=time.time()
-    lasttime=time.time()
     for f in os.listdir(inputdir):
         for line in open(inputdir+"/"+f,"r"):
             if random.random()*100<1:
                 info=line.strip().split(",")
                 ds.append(float(info[2]))
             solvecnt+=1
-            if time.time()-lasttime>=10:
-                lasttime=time.time()
-                outputinfo("sortDist[%s]"%(f),solvecnt,totalcnt,lasttime-starttime)
+            if random.random()*1000000<1:
+                outputinfo("sortDist[%s]"%(f),solvecnt,totalcnt,time.time()-starttime)
     ds.sort()
     rat=solvecnt//10000
     sol=0
@@ -190,7 +181,24 @@ def sortDist(inputdir,outputpath):
         if sol%rat==0:fw.write("%f\n"%(item))
         sol=sol+1
     fw.close()
+def mergePlane(months,planedir):
+    fw=open(planedir+"/planeAllNormal.txt","w")
+    for mon in months:
+        for line in open(planedir+"/planeAllNormal"+mon+".txt","r"):
+            info=line.split(",")
+            fw.write(mon+"-"+info[0])
+            for x in info[1:]:
+                fw.write(","+x)
+    fw.close()
+def loadPlane(planepath):
+    global pmap
+    pmap=dict()
+    index=0
+    for line in open(planepath,"r"):
+        pmap[line[:line.index(",")]]=index
+        index+=1
 if __name__=="__main__":
+    #mergePlane(months,"plane")
     global clumethod
     months=["201412","201501","201502","201503","201504","201505","201506","201507","201508","201509","201510","201511"]
     for cmeth in ["longest","nearest"]:
