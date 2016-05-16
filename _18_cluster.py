@@ -28,65 +28,89 @@ def countline(filePath):
     if(sizeF>1):count=int((count+1)*(sizeF+1))
     f.close()
     return count
-def isNum(val):
-    return True
-  #  return re.compile(r"^\d+(.\d+)?$").match(val)!=None
 def distance(a,b):
     global distmethod
     if distmethod=="euc":
         ds=0.0
         for p in zip(a,b):
-            if isNum(p[0]):
-                p=[float(t) for t in p]
-                ds+=(p[0]-p[1])**2
-            elif p[0]!=p[1]:
-                ds+=1.0
+            ds+=(p[0]-p[1])**2
         return ds
     elif distmethod=="cos":
         top=0.0
         bota=0.0
         botb=0.0
         for p in zip(a,b):
-            if isNum(p[0]):
-                p=[float(t) for t in p]
-                top+=p[0]*p[1]
-                bota+=p[0]*p[0]
-                botb+=p[1]*p[1]
-            else:
-                if p[0]==p[1]:top+=1.0
-                bota+=1.0
-                botb+=1.0
+            top+=p[0]*p[1]
+            bota+=p[0]*p[0]
+            botb+=p[1]*p[1]
         bot=math.sqrt(bota)*math.sqrt(botb)
         return top/bot
     elif distmethod=="man":
         ds=0.0
         for p in zip(a,b):
-            if isNum(p[0]):
-                p=[float(t) for t in p]
-                ds+=math.abs(p[0]-p[1])
-            elif p[0]!=p[1]:
-                ds+=1.0
+            ds+=math.abs(p[0]-p[1])
         return ds
-def merge(a,b):
-    global clumethod,dist,removed
-    if clumethod=="longest":
-        for c in dist:
-            if c!=a and c!=b:
-                if c<a:
-                    if dist[c][a]<dist[c][b]:
-                        dist[c][a]=dist[c][b]
-                        removed.add()
-                dist[a][c]=max(dist[a][c],dist[b][c])
-                dist[c][a]=dist[a][c]
-    elif clumethod=="nearest":
-        for c in cluster:
-            if c!=a and c!=b:
-                dist[a][c]=min(dist[a][c],dist[b][c])
-                dist[c][a]=dist[a][c]
-    for x in cluster[b]:
-        cluster[a][x]=cluster[b][x]
-    cluster.pop(b)
-    dist.pop(b)
+def loadPlane(planepath):
+    global pmap
+    pmap=list()
+    for line in open(planepath,"r"):
+        info=line.strip().split(",")
+        pmap.append([info[0],[float(t) for t in info[1:]],-1])
+def initKMeans(K):
+    global clu,pmap
+    clu=[None]*K
+    rid=int(random.random()*len(pmap))
+    clu[0]=[None]*3
+    clu[0][0]=[float(t) for t in pmap[rid][1]]
+    clu[0][1]=0
+    clu[0][2]=[0]*len(pmap[rid][1])
+    for i in range(1,K):
+        maxds=-1
+        maxv=-1
+        for x in pmap:
+            minds=100.0
+            for j in range(i):
+                ds=distance(clu[j][0],x[1])
+                if ds<minds:minds=ds
+            if maxds<minds:
+                maxds=minds
+                maxv=x[1]
+        clu[i]=[None]*3
+        clu[i][0]=[float(t) for t in maxv]
+        clu[i][1]=0
+        clu[i][2]=[0]*len(maxv)
+def KMeans(K,outputpath):
+    global clu,pmap
+    starttime=time.time()
+    flag=True
+    for itertime in range(100):
+        if itertime==0:initKMeans(K)
+        else:
+            for item in clu:
+                item[0]=[x/item[1] for x in item[2]]
+                item[1]=0
+                item[2]=[0]*len(item[0])
+        flag=False
+        for p im pmap:
+            minds=100.0
+            minid=-1
+            for c,cid in zip(clu,range(K)):
+                ds=distance(c[0],p[1])
+                if ds<minds:
+                    minds=ds
+                    minid=cid
+            if p[2]!=minid:
+                flag=True
+                p[2]=minid
+            for x,xid in zip(p[1],range(len(p[1]))):
+                clu[minid][2]+=x
+            clu[minid][1]+=1
+        if not flag:break
+        outputinfo("KMeans(%d,%s)"%(K,outputpath),itertime+1,100,time.time()-starttime)
+    fw=open(outputpath,"w")
+    for p in pmap:
+        fw.write("%s,%d\n"%(p[0],p[2]))
+    fw.close()
 def computeDistAll(planedir,months,outputdir):
     global distmethod
     sam=dict()
@@ -108,79 +132,6 @@ def computeDistAll(planedir,months,outputdir):
             if random.random()*100<1:
                 outputinfo("computeDistAll[%s]"%(meth),solvecnt,totalcnt,time.time()-starttime)
         fw.close()
-def loadDistFile(inputpath):
-    global dist,pmap
-    init_heap()
-    dist=dict()
-    solvecnt=0
-    totalcnt=countline(inputpath)
-    rate=totalcnt/10000
-    starttime=time.time()
-    lasttime=time.time()
-    for line in open(inputpath,"r"):
-        info=line.strip().split(",")
-        ua=pmap[info[0]]
-        ub=pmap[info[1]]
-        if ua>ub:ua,ub=swap(ua,ub)
-        if ua not in dist:dist[ua]=dict()
-        dist[ua][ub]=float(info[2])
-        push([float(info[2]),ua,ub])
-        solvecnt+=1
-        if time.time()-lasttime>=10:
-            lasttime=time.time()
-            outputinfo("loadDistFile(%s)"%(inputpath),solvecnt,totalcnt,lasttime-starttime)
-def iteration(logs):
-    global dist
-    minds=1000.0
-    mina=-1
-    minb=-1
-    for a in dist:
-        for b in dist:
-            if b<=a:continue
-            ds=dist[a][b]
-            if ds<minds:
-                minds=ds
-                mina=a
-                minb=b
-    if mina!=-1:
-        merge(mina,minb)
-        logs.write("%s,%s,%f\n"%(mina,minb,minds))
-    else:
-        print("merge error")
-        logs.close()
-        sys.exit(-1)
-    return minds
-def planeCluster(mergepath):
-    global dist
-    logs=open(mergepath,"w")
-    tot=len(dist)
-    totalcnt=tot-1
-    startime=time.time()
-    for i in range(totalcnt):
-        minds=iteration(logs)
-        outputinfo("planeCluster[%s,%.4f]"%(mergepath,minds),i+1,totalcnt,time.time()-starttime)
-    logs.close()
-def sortDist(inputdir,outputpath):
-    ds=list()
-    solvecnt=0
-    totalcnt=countline("cluster/dist_cos.txt")+countline("cluster/dist_euc.txt")+countline("cluster/dist_man.txt")
-    starttime=time.time()
-    for f in os.listdir(inputdir):
-        for line in open(inputdir+"/"+f,"r"):
-            if random.random()*100<1:
-                info=line.strip().split(",")
-                ds.append(float(info[2]))
-            solvecnt+=1
-            if random.random()*1000000<1:
-                outputinfo("sortDist[%s]"%(f),solvecnt,totalcnt,time.time()-starttime)
-    ds.sort()
-    rat=solvecnt//10000
-    sol=0
-    fw=open(outputpath,"w")
-    for item in ds:
-        if sol%rat==0:fw.write("%f\n"%(item))
-        sol=sol+1
-    fw.close()
 def mergePlane(months,planedir):
     fw=open(planedir+"/planeAllNormal.txt","w")
     for mon in months:
@@ -190,20 +141,10 @@ def mergePlane(months,planedir):
             for x in info[1:]:
                 fw.write(","+x)
     fw.close()
-def loadPlane(planepath):
-    global pmap
-    pmap=dict()
-    index=0
-    for line in open(planepath,"r"):
-        pmap[line[:line.index(",")]]=index
-        index+=1
 if __name__=="__main__":
-    #mergePlane(months,"plane")
-    global clumethod
-    months=["201412","201501","201502","201503","201504","201505","201506","201507","201508","201509","201510","201511"]
-    for cmeth in ["longest","nearest"]:
-        clumethod=cmeth
-        for dmeth in ["euc","cos","man"]:
-            loadDistFile("cluster/dist_"+dmeth+".txt")
-            loadClusterAll(months,"plane")
-            planeCluster("cluster/%s_%s.txt"%(cmeth,dmeth))
+    global distmethod
+    loadPlane("plane/planeAllNormal.txt")
+    for K in [5,10,20,50,100,200,500,1000]:
+        for method in ["euc","cos","man"]:
+            distmethod=method
+            KMeans(K,"cluster/clus_%s_%d.txt"%(method,K))
