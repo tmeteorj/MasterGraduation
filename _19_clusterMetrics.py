@@ -28,14 +28,6 @@ def countline(filePath):
     if(sizeF>1):count=int((count+1)*(sizeF+1))
     f.close()
     return count
-def loadDist(inputpath):
-    global dist,pid
-    dist=dict()
-    for line in open(inputpath,"r"):
-        info=line.strip().split(",")
-        p=info[:2]
-        if p[0]>p[1]:p=[p[1],p[0]]
-        dist[p[0]][p[1]]=float(info[2])
 def loadPlane(inputpath):
     global pid
     pid=dict()
@@ -62,7 +54,7 @@ def distance(a,b):
         ans+=(float(x)-float(y))**2
     return ans
 def computeMetrics(K,clusterpath,size):
-    global pid,dist
+    global pid
     cen=[None]*K
     avg=[None]*K
     last=None
@@ -73,7 +65,6 @@ def computeMetrics(K,clusterpath,size):
         if last==None:
             last=info[1]
         if last!=info[1]:
-            res=0
             tot=len(ls)
             cen[last]=[0]*size
             for x in ls:
@@ -81,12 +72,10 @@ def computeMetrics(K,clusterpath,size):
                 for y,yid in zip(data,range(size)):
                     cen[last][yid]+=y
             cen[last]=[float(t)/tot fot t in cen[last]]
+            res=0.0
             for x in ls:
-                for y in ls:
-                    if x>=y:continue
-                    res+=dist[x][y]
-            res=2.0*res/(tot*(tot-1.0))
-            avg[last]=res
+                res+=distance(pid[x],cen[last])**2
+            avg[last]=math.sqrt(res/tot)
             last=info[1]
             ls.clear()
         ls.append(info[0])
@@ -99,15 +88,12 @@ def computeMetrics(K,clusterpath,size):
             cen[last][yid]+=y
     cen[last]=[float(t)/tot fot t in cen[last]]
     for x in ls:
-        for y in ls:
-            if x>=y:continue
-            res+=dist[x][y]
-    res=2.0*res/(tot*(tot-1.0))
-    avg[last]=res
+        res+=distance(pid[x],cen[last])**2
+    avg[last]=math.sqrt(res/tot)
     dbi=0.0
-    for i in avg:
+    for i in range(K):
         mx=0.0
-        for j in avg:
+        for j in range(K):
             if i==j:continue
             mx=max(mx,(avg[i]+avg[j])/distance(cen[i],cen[j]))
         dbi+=mx
@@ -118,6 +104,8 @@ def KMeansMetrics(KS,clusterdir,size,outputpath):
     for k in KS:
         dbi=computeMetrics(k,clusterdir+"/clus_euc_%s.txt"%(k),size)
         fw.write("%s,%.5f\n"%(k,dbi))
+        fw.flush()
     fw.close()
 if __name__=="__main__":
-    KMeansMetrics(sys.argv[1:],"cluster",19,"cluster")
+    KS=[2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,20,50,100,200,300]
+    KMeansMetrics(KS,"cluster",19,"clusterMetrics.txt")
