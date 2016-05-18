@@ -34,9 +34,9 @@ def loadClusterMap(inputpath):
     for line in open(inputpath,"r"):
         info=line.strip().split(",")
         cid[info[0]]=int(info[1])
-def readMobilityFile(inputpath):
+def readMobilityFile(inputpath,inner):
     global cid,cmat
-    ms=inputpath[inputpath.index["2"]:inputpath.index["."]].split("-")
+    ms=inputpath[inputpath.index("2"):inputpath.index(".")].split("-")
     for line in open(inputpath,"r"):
         info=line.strip().split(",")
         pid=[None,None]
@@ -45,12 +45,16 @@ def readMobilityFile(inputpath):
                 pid[i]=-1
                 continue
             pid[i]=cid[ms[i]+"-"+info[i]]
+        if inner and -1 in pid:continue
         if pid[0] not in cmat:cmat[pid[0]]=dict()
         if pid[1] not in cmat[pid[0]]:cmat[pid[0]][pid[1]]=0
+        if -2 not in cmat[pid[0]]:cmat[pid[0]][-2]=0
         cmat[pid[0]][pid[1]]+=int(info[2])
         cmat[pid[0]][-2]+=int(info[2])
-def readMobilityDir(inputdir,single):
+def readMobilityDir(inputdir,single,inner):
     global cmat
+    if inner:preffix="innerclustermobility"
+    else:preffix="clustermobility"
     cmat=dict()
     files=os.listdir(inputdir)
     solvecnt=0
@@ -58,18 +62,18 @@ def readMobilityDir(inputdir,single):
     starttime=time.time()
     for f in files:
         if f.find("mat")==0:
-            readMobilityFile(inputdir+"/"+f)
+            readMobilityFile(inputdir+"/"+f,inner)
             if single:
-                outputClusterMobility(inputdir+"/clustermobility"+f[f.index("2"):])
+                outputClusterMobility(inputdir+"/"+preffix+f[f.index("2"):])
                 cmat=dict()
         solvecnt+=1
         outputinfo("readMobilityDir(%s)"%(f),solvecnt,totalcnt,time.time()-starttime)
     if not single:
-        outputClusterMobility(inputdir+"/clustermobilityAll.txt")
+        outputClusterMobility(inputdir+"/"+preffix+"All.txt")
 def outputClusterMobility(outputpath):
     global cmat
     fw=open(outputpath,"w")
-    for x in sorted(cmat.items,key=lambda arg:arg[0]):
+    for x in sorted(cmat.items(),key=lambda arg:arg[0]):
         data=x[1]
         tot=0
         for y in sorted(data.items(),key=lambda arg:arg[0]):
@@ -80,7 +84,8 @@ def outputClusterMobility(outputpath):
     fw.close()
 if __name__=="__main__":
     global cmat
-    loadClusterMap("cluster/clus_euc_270.txt")
-    readMobilityDir("mobilitymat",False)
-    readMobilityDir("mobilitymat",True)
+    loadClusterMap("cluster/clus_euc_375.txt")
+    for single in [True,False]:
+        for inner in [True,False]:
+            readMobilityDir("mobilitymat",single,innner)
 
