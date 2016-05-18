@@ -91,6 +91,17 @@ def revolution(outputpath,movein):
         if c==-1:continue
         fw.write("%d,%d\n"%(c,int(pre[c])))
     fw.close()
-def revolutionTest(outputdir):
+def revolutionTest(outputdir,mobilitydir,planedir,retimes,innner):
     global pop,mat,pre
-    
+    months=["201412"]+[str(t) for t in range(201501,201512)]
+    for i in range(11):
+        loadClusterPopulation(planedir+"/clusterpop"+months[i]+".txt")
+        for j in range(retimes):
+            if not os.path.exists(planedir+"/clusterpop"+months[i+j+1]+".txt"):break
+            fn=months[i+j]+"-"+months[i+j+1]+".txt"
+            if inner:
+                readMobilityMat(mobilitydir+"/innerclustermobility"+fn)
+                revolution(outputdir+"/pre_%s_%d.txt"%(months[i],j+1),None)
+            else:
+                readMobilityMat(mobilitydir+"/clustermobility"+fn)
+        
