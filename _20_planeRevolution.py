@@ -58,9 +58,12 @@ def getAllClusterPopulation(clusterpath,planedir,outputdir):
 def loadClusterPopulation(clspoppath):
     global pop
     pop=dict()
+    tot=0
     for line in open(clspoppath,"r"):
         info=[int(t) for t in line.strip().split(",")]
         pop[info[0]]=info[1]
+        tot+=info[1]
+    return tot
 def readMobilityMat(mobmatpath):
     global mat
     mat=dict()
@@ -81,27 +84,36 @@ def revolution(outputpath,movein):
             p=mat[c][t]
             if t not in pre:pre[t]=0.0
             pre[t]+=pop[c]*mat[c][t]
-    if not movein:
+    if movein:
         for t in mat[-1]:
             p=mat[-1][t]
             if t not in pre:pre[t]=0.0
             pre[t]+=movein*mat[c][t]
+    diff=0
     fw=open(outputpath,"w")
     for c in pre:
         if c==-1:continue
         fw.write("%d,%d\n"%(c,int(pre[c])))
+        if c in pop:diff+=math.fabs(pre[c]-pop[c])
+        else:diff+=pre[c]
     fw.close()
-def revolutionTest(outputdir,mobilitydir,planedir,retimes,innner):
-    global pop,mat,pre
+    for c in pop:
+        if c not in pre:
+            diff+=pop[c]
+    return diff/2.0
+def getStableStates(clspath,matpath):
+    global pop,pre,mat
+    tot=loadClusterPopulation(clspath)
+    readMobilityMat(matpath)
+    starttime=time.time()
+    for itertime in range(120):
+        diff=revolution("revolution/rev"+str(itertime)+".txt",None)
+        print("Difference: %d/%d->%.6f%%"%(int(diff),int(tot),diff*100.0/tot))
+        if diff*10000<tot:
+            outputinfow("Arrived stable point after %d iteration"%(itertime+1))
+            break
+        outputinfo("getStableStates(%s)"%(clspath),itertime+1,120,time.time()-starttime)
+if __name__=="__main__":
     months=["201412"]+[str(t) for t in range(201501,201512)]
-    for i in range(11):
-        loadClusterPopulation(planedir+"/clusterpop"+months[i]+".txt")
-        for j in range(retimes):
-            if not os.path.exists(planedir+"/clusterpop"+months[i+j+1]+".txt"):break
-            fn=months[i+j]+"-"+months[i+j+1]+".txt"
-            if inner:
-                readMobilityMat(mobilitydir+"/innerclustermobility"+fn)
-                revolution(outputdir+"/pre_%s_%d.txt"%(months[i],j+1),None)
-            else:
-                readMobilityMat(mobilitydir+"/clustermobility"+fn)
-        
+    for m in months:
+        getStableStates("","")

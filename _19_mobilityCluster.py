@@ -51,7 +51,7 @@ def readMobilityFile(inputpath,inner):
         if -2 not in cmat[pid[0]]:cmat[pid[0]][-2]=0
         cmat[pid[0]][pid[1]]+=int(info[2])
         cmat[pid[0]][-2]+=int(info[2])
-def readMobilityDir(inputdir,single,inner):
+def readMobilityDir(inputdir,outputdir,msingle,inner):
     global cmat
     if inner:preffix="innerclustermobility"
     else:preffix="clustermobility"
@@ -64,12 +64,12 @@ def readMobilityDir(inputdir,single,inner):
         if f.find("mat")==0:
             readMobilityFile(inputdir+"/"+f,inner)
             if single:
-                outputClusterMobility(inputdir+"/"+preffix+f[f.index("2"):])
+                outputClusterMobility(outputdir+"/"+preffix+f[f.index("2"):])
                 cmat=dict()
         solvecnt+=1
         outputinfo("readMobilityDir(%s)"%(f),solvecnt,totalcnt,time.time()-starttime)
     if not single:
-        outputClusterMobility(inputdir+"/"+preffix+"All.txt")
+        outputClusterMobility(outputdir+"/"+preffix+"All.txt")
 def outputClusterMobility(outputpath):
     global cmat
     fw=open(outputpath,"w")
@@ -87,5 +87,5 @@ if __name__=="__main__":
     loadClusterMap("cluster/clus_euc_375.txt")
     for single in [True,False]:
         for inner in [True,False]:
-            readMobilityDir("mobilitymat",single,innner)
+            readMobilityDir("mobilitymat","revolution",single,innner)
 
