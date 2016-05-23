@@ -65,4 +65,5 @@ def computeDistPop(mobpoppath,outputpath,maxds,interlen):
     fw.close()
 if __name__=="__main__":
     loadDistMat("PlaneInfo.txt","PlaneDist.txt")
-    computeMobPop("","")
+    computeMobPop("mobilitymat/matAll.txt","predication/distDistribution.txt")
+    computeDistPop("predication/distDistribution.txt","predication/distNormalDistribution.txt",32000,500)
