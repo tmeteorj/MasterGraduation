@@ -188,7 +188,7 @@ if __name__=="__main__":
     loadPlane("plane/planeAllNormal.txt")
     #initKMeans(1000)
     #writeClu("KMeansInit.txt")
-    fw=open("clusterMetrics370-380.txt","w")
+    fw=open("clusterMetrics.txt","w")
     KS=list(range(2,21))+[t*10 for t in range(3,100)]
     for K in KS:
         KMeans(K,"cluster/clus_euc_%d.txt"%(K),300)

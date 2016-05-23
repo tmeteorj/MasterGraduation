@@ -27,7 +27,7 @@ def countline(filePath):
     if(sizeF>1):count=int((count+1)*(sizeF+1))
     f.close()
     return count
-def loadDistmat(planepath,distpath):
+def loadDistMat(planepath,distpath):
     global dist
     dist=dict()
     pid=[int(t.strip()) for t in open(planepath,"r")]
@@ -43,6 +43,7 @@ def computeMobPop(mobilitypath,outputpath):
         info=line.strip().split(",")
         da=int(info[0])
         db=int(info[1])
+        if -1 in [da,db]:continue
         ds=dist[da][db]
         np=int(info[2])
         pd[ds]=np if ds not in pd else pd[ds]+np
@@ -60,10 +61,10 @@ def computeDistPop(mobpoppath,outputpath,maxds,interlen):
         pop[idx]+=info[1]
         tot+=info[1]
     fw=open(outputpath,"w")
-    for i in range(iternum+1):
-        fw.write("%d,%d,%.6f\n"%(i*interlen+interlen//2,pop[i],float(pop[i])/float(tot)))
+    for i in range(internum):
+        fw.write("%d,%d,%.6f\n"%(i*interlen+interlen,pop[i],float(pop[i])/float(tot)))
     fw.close()
 if __name__=="__main__":
-    loadDistMat("PlaneInfo.txt","PlaneDist.txt")
+    loadDistMat("PlaneID.txt","PlaneDist.txt")
     computeMobPop("mobilitymat/matAll.txt","predication/distDistribution.txt")
-    computeDistPop("predication/distDistribution.txt","predication/distNormalDistribution.txt",32000,500)
+    computeDistPop("predication/distDistribution.txt","predication/distNormalDistribution.txt",32000,100)
